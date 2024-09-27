@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "984067254152",
+    "project_id": "phuong-7fa75",
+    "storage_bucket": "phuong-7fa75.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:984067254152:android:398aafc0edcaa1f4bcbc3d",
+        "android_client_info": {
+          "package_name": "com.example.phuong"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCS2C0KuMEq2dBiipcvM95fSq3nwTTL9fM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
