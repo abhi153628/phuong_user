@@ -1,0 +1,12 @@
+//! SearchType 
+
+Maintainability and Readability: Using SearchType makes the code more readable and maintainable.
+ For instance, instead of checking if searchType == "name", we use searchType == SearchType.name,
+  which is more descriptive and resistant to typos.
+
+Error Prevention: Enums prevent invalid values. If a new search type needs to be added,
+ adding a new case to the enum will update the code everywhere it’s used, reducing the chance of errors.
+
+The horizontal row of ChoiceChip widgets allows users to select a search type visually.
+When a ChoiceChip is selected, it updates _searchType, clears the search controller,
+and triggers a fresh filtering to display results matching the new search type.
