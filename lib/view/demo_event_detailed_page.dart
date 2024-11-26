@@ -1,12 +1,7 @@
 // event_service.dart
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/services/event_fetching_firebase_service.dart';
-
-
-
-
 
 // Utility function to parse a time string (e.g., "14:30") into a TimeOfDay object
 TimeOfDay timeOfDayFromString(String timeString) {
@@ -18,9 +13,10 @@ TimeOfDay timeOfDayFromString(String timeString) {
 
 class EventCard extends StatelessWidget {
   final EventModel event;
-
-  const EventCard({Key? key, required this.event,}) : super(key: key);
-
+  const EventCard({
+    Key? key,
+    required this.event,
+  }) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -64,7 +60,7 @@ class EventCard extends StatelessWidget {
                         child: const Icon(Icons.image),
                       ),
               ),
-              
+
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -148,7 +144,8 @@ class EventCard extends StatelessWidget {
                         children: [
                           const Icon(Icons.event_seat, size: 16),
                           const SizedBox(width: 4),
-                          Text('Available Seats: ${event.seatAvailabilityCount!.toInt()}'),
+                          Text(
+                              'Available Seats: ${event.seatAvailabilityCount!.toInt()}'),
                         ],
                       ),
                     ],
@@ -209,7 +206,6 @@ class EventCard extends StatelessWidget {
   }
 }
 
-
 class EventsScreen extends StatefulWidget {
   const EventsScreen({Key? key}) : super(key: key);
 
@@ -253,7 +249,8 @@ class _EventsScreenState extends State<EventsScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                    const Icon(Icons.error_outline,
+                        size: 48, color: Colors.red),
                     const SizedBox(height: 16),
                     Text('Error: ${snapshot.error}'),
                   ],
@@ -272,7 +269,9 @@ class _EventsScreenState extends State<EventsScreen> {
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 final event = snapshot.data![index];
-                return EventCard(event: event,);
+                return EventCard(
+                  event: event,
+                );
               },
             );
           },

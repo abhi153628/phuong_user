@@ -1,11 +1,14 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/constants/colors.dart';
-import 'package:phuong/utils/cstm_text.dart';
 import 'package:phuong/modal/event_modal.dart';
+import 'package:phuong/view/homepage/widgets/colors.dart';
 
 class EventDetailsPage extends StatelessWidget {
   final EventModel event;
-
   const EventDetailsPage({
     Key? key,
     required this.event,
@@ -16,37 +19,125 @@ class EventDetailsPage extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(backgroundColor: scaffoldColor,
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: screenWidth * 0.03,
-            vertical: screenHeight * 0.01,
+    return Scaffold(
+      backgroundColor: scaffoldColor,
+      // Remove the bottom navigation bar from the body
+      body: Stack(
+        children: [
+          // Main scrollable content
+          SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.03,
+                vertical: screenHeight * 0.01,
+              ).copyWith(
+                  bottom: 100), // Add extra bottom padding for the bottom bar
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  MainContentWidget(
+                    screenWidth: screenWidth,
+                    event: event,
+                  ),
+                  const SizedBox(height: 20),
+                  EventNameWidget(
+                    screenWidth: screenWidth,
+                    event: event,
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Quick Outlook',
+                        style: GoogleFonts.notoSans(
+                            fontSize: 15, color: white, letterSpacing: 1),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  EventDetailsCard(
+                    screenWidth: screenWidth,
+                    event: event,
+                  ),
+                  // Remove _buildBottomBar from here
+                ],
+              ),
+            ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              MainContentWidget(
-                screenWidth: screenWidth,
-                event: event,
-              ),
-              SizedBox(height: 20),
-              EventNameWidget(
-                screenWidth: screenWidth,
-                event: event,
-              ),
-              SizedBox(height: 20),
-              CstmText(text: 'Quick Outlook', fontSize: 20),
-              EventDetailsCard(
-                screenWidth: screenWidth,
-                event: event,
-              ),
-            ],
+
+          // Permanent Bottom Bar positioned at the bottom
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _buildBottomBar(context),
           ),
-        ),
+        ],
       ),
     );
   }
+
+  Widget _buildBottomBar(BuildContext context) {
+  return Container(
+    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          AppColors.activeGreen.withOpacity(0.7),
+          AppColors.activeGreen.withOpacity(0.9),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.activeGreen.withOpacity(0.3),
+          blurRadius: 15,
+          spreadRadius: 2,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: ElevatedButton(
+      onPressed: () {
+        // TODO: Navigation to payment
+        HapticFeedback.lightImpact(); // Add subtle haptic feedback
+        
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        elevation: 0,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Book Now',
+            style: GoogleFonts.syne(
+              color: Colors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              
+            ),
+          ),
+          const SizedBox(width: 10),
+          Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: Colors.black,
+            size: 18,
+          ),
+        ],
+      ),
+    ),
+  );
+}
 }
 
 class MainContentWidget extends StatelessWidget {
@@ -62,6 +153,7 @@ class MainContentWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
+      //! P A D D I N G
       padding: EdgeInsets.only(top: screenWidth * 0.05),
       child: Stack(
         clipBehavior: Clip.none,
@@ -121,7 +213,7 @@ class MainContentWidget extends StatelessWidget {
           width: screenWidth * 0.9,
           padding: EdgeInsets.all(screenWidth * 0.04),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.4),
+            color: Colors.black.withOpacity(0.8),
             borderRadius: BorderRadius.circular(40),
           ),
           child: Row(
@@ -129,13 +221,16 @@ class MainContentWidget extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.circle, color: green, size: screenWidth * 0.04),
+                  Icon(Icons.circle,
+                      color: AppColors.activeGreen, size: screenWidth * 0.04),
                   SizedBox(width: screenWidth * 0.02),
-                  CstmText(
-                    text: 'Bookings Open Till',
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  Text(
+                    'Bookings Open Until',
+                    style: GoogleFonts.notoSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: white),
+                  )
                 ],
               ),
               Text(
@@ -144,7 +239,10 @@ class MainContentWidget extends StatelessWidget {
                         '${event.date!.year}  '
                         '${event.time?.format(context) ?? "TBA"}'
                     : 'Date TBA',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: white.withOpacity(0.9)),
               ),
             ],
           ),
@@ -165,7 +263,7 @@ class MainContentWidget extends StatelessWidget {
           vertical: screenWidth * 0.015,
         ),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.black.withOpacity(0.6),
           borderRadius: BorderRadius.circular(15),
         ),
         child: Text(
@@ -196,7 +294,7 @@ class EventNameWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.black,
+        color: Color(0xFF1A1D21),
         borderRadius: BorderRadius.circular(12),
       ),
       padding: EdgeInsets.all(screenWidth * 0.03),
@@ -219,13 +317,14 @@ class EventNameWidget extends StatelessWidget {
         children: [
           Container(
             width: double.infinity,
+            //! E V E N T  N A M E
             child: Text(
               event.eventName ?? 'Untitled Event',
-              style: TextStyle(
-                fontSize: screenWidth * 0.04,
-                color: Colors.grey,
-                height: 1.2,
-              ),
+              style: GoogleFonts.syne(
+                  fontSize: screenWidth * 0.05,
+                  color: Colors.white,
+                  height: 1.2,
+                  fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
               maxLines: 2,
             ),
@@ -233,17 +332,76 @@ class EventNameWidget extends StatelessWidget {
           SizedBox(height: screenWidth * 0.02),
           Container(
             width: double.infinity,
-            child: Text(
-              event.location ?? 'Location TBA',
-              style: TextStyle(
-                fontSize: screenWidth * 0.03,
-                color: Colors.grey,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 3,
+            //! E V E N T   L O C A T I O N
+            child: Row(
+              children: [
+                Container(
+                  width: screenWidth * 0.10,
+                  height: screenWidth * 0.10,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2A2D31),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.location_on,
+                    color: Colors.white70,
+                    size: screenWidth * 0.05,
+                  ),
+                ),
+                SizedBox(width: 10),
+                Text(
+                  event.location ?? 'Location TBA',
+                  style: GoogleFonts.notoSans(
+                    fontSize: screenWidth * 0.04,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
+                ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String title,
+    required String content,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(icon, size: 24, color: Colors.blue),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                Text(
+                  content,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -252,11 +410,11 @@ class EventNameWidget extends StatelessWidget {
     if (event.ticketPrice == null) return SizedBox.shrink();
 
     return Container(
-      width: screenWidth * 0.2,
-      height: screenWidth * 0.15,
+      width: screenWidth * 0.29,
+      height: screenWidth * 0.19,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: Colors.orange,
+        color: Colors.black,
       ),
       padding: EdgeInsets.all(screenWidth * 0.02),
       child: Column(
@@ -264,11 +422,12 @@ class EventNameWidget extends StatelessWidget {
         children: [
           FittedBox(
             fit: BoxFit.scaleDown,
+            //! P R I C E
             child: Text(
-              '\$${event.ticketPrice!.toStringAsFixed(2)}',
+              '\₹ ${event.ticketPrice!.toStringAsFixed(2)}',
               style: TextStyle(
-                fontSize: screenWidth * 0.05,
-                color: Colors.white,
+                fontSize: screenWidth * 0.07,
+                color: AppColors.activeGreen,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -279,7 +438,7 @@ class EventNameWidget extends StatelessWidget {
               '/person',
               style: TextStyle(
                 fontSize: screenWidth * 0.03,
-                color: Colors.white,
+                color: Colors.grey,
                 fontWeight: FontWeight.bold,
               ),
             ),
