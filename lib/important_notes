@@ -10,3 +10,112 @@ Error Prevention: Enums prevent invalid values. If a new search type needs to be
 The horizontal row of ChoiceChip widgets allows users to select a search type visually.
 When a ChoiceChip is selected, it updates _searchType, clears the search controller,
 and triggers a fresh filtering to display results matching the new search type.
+
+
+
+void _showBookingConfirmation(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (context) => Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.black87,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.activeGreen.withOpacity(0.5),
+            blurRadius: 15,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Confirm Booking',
+              style: GoogleFonts.syneMono(
+                color: AppColors.activeGreen,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Are you sure you want to book this event?',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.notoSans(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[800],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.notoSans(color: Colors.white),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    // Implement actual booking logic
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.activeGreen,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Confirm',
+                    style: GoogleFonts.notoSans(color: Colors.black),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+  //   //! PHONE NUMBER VERFICATION
+  //  _showPhoneAuthBottomSheet(context);
+  }
+//   void _showPhoneAuthBottomSheet(BuildContext context) {
+//   showModalBottomSheet(
+//     context: context,
+//     isScrollControlled: true,
+//     backgroundColor: Colors.transparent,
+//     builder: (context) => SingleChildScrollView(
+//       child: Container(
+//         padding: EdgeInsets.only(
+//           bottom: MediaQuery.of(context).viewInsets.bottom,
+//         ),
+//         child: PhoneAuthBottomSheet(),
+//       ),
+//     ),
+//   ).then((verified) {
+//     if (verified == true) {
+//       // User is verified, proceed to seat booking
+//       // You can add your seat booking logic here
+  
+//     }
+//   });
+// }

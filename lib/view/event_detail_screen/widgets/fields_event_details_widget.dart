@@ -1,10 +1,12 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/event_modal.dart';
+import 'package:phuong/view/event_detail_screen/widgets/event_terms_condition_widget.dart';
+import 'package:phuong/view/event_detail_screen/widgets/ph_no_authentication_botom_sheet.dart';
+import 'package:phuong/view/event_detail_screen/widgets/seat_availibility_bottom_sheet.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 
 class EventDetailsPage extends StatelessWidget {
@@ -44,7 +46,8 @@ class EventDetailsPage extends StatelessWidget {
                     screenWidth: screenWidth,
                     event: event,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 30),
+                  //!----------------------------
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
@@ -53,6 +56,8 @@ class EventDetailsPage extends StatelessWidget {
                         style: GoogleFonts.notoSans(
                             fontSize: 15, color: white, letterSpacing: 1),
                       ),
+           
+
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -60,6 +65,22 @@ class EventDetailsPage extends StatelessWidget {
                     screenWidth: screenWidth,
                     event: event,
                   ),
+                  //! --------------------------
+                  SizedBox(height: 30,),
+                  Row(mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                     Text(
+                        'Event Terms & Conditions',
+                        style: GoogleFonts.notoSans(
+                            fontSize: 15, color: white, letterSpacing: 1),
+                      ),
+                    ],
+                  ),
+                     const SizedBox(height: 10),
+
+                     EventTermsAndConditions(
+                  eventRules: event.eventRules ?? [],
+                ),
                   // Remove _buildBottomBar from here
                 ],
               ),
@@ -102,8 +123,12 @@ class EventDetailsPage extends StatelessWidget {
     ),
     child: ElevatedButton(
       onPressed: () {
-        // TODO: Navigation to payment
-        HapticFeedback.lightImpact(); // Add subtle haptic feedback
+        
+        // TODO: Navigation to payment page 
+        HapticFeedback.lightImpact(); 
+        // Add subtle haptic feedback
+        _showBookingBottomSheet(context,event);
+ 
         
       },
       style: ElevatedButton.styleFrom(
@@ -137,6 +162,34 @@ class EventDetailsPage extends StatelessWidget {
       ),
     ),
   );
+}
+
+  void _showBookingBottomSheet(BuildContext context, EventModel event) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (context) => BookingBottomSheet(event: event),
+  );
+}
+void _showPhoneAuthBottomSheet(BuildContext context, EventModel event) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => SingleChildScrollView(
+      child: Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: PhoneAuthBottomSheet(),
+      ),
+    ),
+  ).then((verified) {
+    if (verified == true) {
+      // User is verified, proceed to seat booking
+      // You can add your seat booking logic here
+    }
+  });
 }
 }
 
@@ -362,6 +415,43 @@ class EventNameWidget extends StatelessWidget {
               ],
             ),
           ),
+          SizedBox(height: 10,),
+          //! O R G A N I Z E R   N A M E
+           Container(
+            width: double.infinity,
+         
+            child: Row(
+              children: [
+                Container(
+                  width: screenWidth * 0.10,
+                  height: screenWidth * 0.10,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2A2D31),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.person,
+                    color: Colors.white70,
+                    size: screenWidth * 0.05,
+                  ),
+                ),
+                SizedBox(width: 10),
+                InkWell(onTap: (){
+                  // todo : navigating to profile view screen
+                },
+                  child: Text(
+                    event.organizerName ?? 'Organizer Name',
+                    style: GoogleFonts.notoSans(
+                      fontSize: screenWidth * 0.04,
+                      color: AppColors.activeGreen.withOpacity(0.9),
+                      fontWeight: FontWeight.w700,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 3,
+                  ),
+                ),
+              ],
+           )),
         ],
       ),
     );
@@ -479,7 +569,7 @@ class EventDetailsCard extends StatelessWidget {
           if (event.genreType != null) ...[
             _buildSection(
               icon: Icons.category,
-              title: 'CATEGORIES',
+              title: 'CATEGORY',
               content: event.genreType!,
             ),
             SizedBox(height: screenWidth * 0.04),
@@ -494,7 +584,7 @@ class EventDetailsCard extends StatelessWidget {
             _buildSection(
               icon: Icons.info_outline,
               title: 'IMPORTANT EVENT NOTES',
-              content: event.eventRules!.join('\n'),
+              content: event.specialInstruction!,
             ),
           ],
         ],
@@ -540,7 +630,7 @@ class EventDetailsCard extends StatelessWidget {
           width: screenWidth * 0.10,
           height: screenWidth * 0.10,
           decoration: BoxDecoration(
-            color: const Color(0xFF2A2D31),
+            color: Color(0xFF2A2D31),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
