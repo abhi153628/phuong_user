@@ -6,8 +6,8 @@ import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/payment_sucess_page/payment_sucess_pag.dart';
-
-import 'package:phuong/view/welcomepage/welcomes_screen.dart'; // Assuming you'll create a payment screen
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class BookingBottomSheet extends StatefulWidget {
   final EventModel event;
@@ -22,7 +22,83 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
   int _selectedSeats = 0;
   String? _errorMessage;
   double _totalPrice = 0.0;
+  late Razorpay _razorpay;
 
+  @override
+  void initState() {
+    super.initState();
+    _initializeRazorpay();
+  }
+
+  // Initialize Razorpay instance
+  void _initializeRazorpay() {
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  // Handle successful payments
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    Fluttertoast.showToast(
+      msg: "Payment Successful: ${response.paymentId}",
+      toastLength: Toast.LENGTH_LONG,
+    );
+    
+    // Navigate to success screen
+    Navigator.of(context).pushReplacement(
+      GentlePageTransition(
+        page: PaymentSuccessScreen(
+          event: widget.event,
+          selectedSeats: _selectedSeats,
+          totalAmount: _totalPrice,
+          key: GlobalKey(),
+        ),
+        child: null,
+      ),
+    );
+  }
+
+  // Handle payment failures
+  void _handlePaymentError(PaymentFailureResponse response) {
+    Fluttertoast.showToast(
+      msg: "Payment Failed: ${response.message}",
+      toastLength: Toast.LENGTH_LONG,
+    );
+  }
+
+  // Handle external wallet selection
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    Fluttertoast.showToast(
+      msg: "External Wallet Selected: ${response.walletName}",
+      toastLength: Toast.LENGTH_LONG,
+    );
+  }
+
+  // Create order options for Razorpay
+  void _createOrder() {
+    var options = {
+      'key': 'rzp_test_jIotm3SaZbXO9x', // Razorpay Key
+      'amount': (_totalPrice * 100).toInt(), // Amount in smallest currency unit
+      'name': ' Phuong Booking',
+      'description': '${widget.event.eventName} - $_selectedSeats seats',
+      'prefill': {
+        'contact': '', //user's phone number if available
+        'email': ''  ,  // Add user's email if available
+      },
+      'external': {
+        'wallets': ['paytm']
+      }
+    };
+
+    try {
+      _razorpay.open(options);
+    } catch (e) {
+      debugPrint('Error: $e');
+    }
+  }
+
+  // Previous methods remain the same
   void _incrementSeats() {
     setState(() {
       if (_selectedSeats < widget.event.seatAvailabilityCount!) {
@@ -46,7 +122,6 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
   }
 
   void _calculateTotalPrice() {
-    // Ensure ticket price is not null before calculation
     setState(() {
       _totalPrice = (widget.event.ticketPrice ?? 0.0) * _selectedSeats;
     });
@@ -60,11 +135,14 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
       return;
     }
 
-    // Haptic feedback
     HapticFeedback.lightImpact();
+    _createOrder(); 
+  }
 
-    //! Navigate to Payment Screen
-    Navigator.of(context).push(GentlePageTransition(page: PaymentSuccessScreen(event: EventModel(),selectedSeats: _selectedSeats,totalAmount: _totalPrice,key: GlobalKey(),)));
+  @override
+  void dispose() {
+    _razorpay.clear(); // Clear all razorpay event listeners 
+    super.dispose();
   }
 
   @override

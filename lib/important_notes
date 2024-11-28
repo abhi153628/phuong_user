@@ -119,3 +119,5 @@ void _showBookingConfirmation(BuildContext context) {
 //     }
 //   });
 // }
+
+Navigator.of(context).push(GentlePageTransition(page: PaymentSuccessScreen(event: EventModel(),selectedSeats: _selectedSeats,totalAmount: _totalPrice,key: GlobalKey(),)));

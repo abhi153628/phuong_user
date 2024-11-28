@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class GentlePageTransition extends PageRouteBuilder {
   final Widget page;
 
-  GentlePageTransition({required this.page})
+  GentlePageTransition({required this.page, required child})
       : super(
           pageBuilder: (context, animation, secondaryAnimation) => page,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {

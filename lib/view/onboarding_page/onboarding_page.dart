@@ -205,7 +205,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             curve: Curves.ease,
           );
         } else {
-          Navigator.of(context).push(GentlePageTransition(page: LoginPage()));
+          Navigator.of(context).push(GentlePageTransition(page: LoginPage(), child: null));
         }
       },
       style: ElevatedButton.styleFrom(
