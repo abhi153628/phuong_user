@@ -120,7 +120,7 @@ class _EventsCarouselState extends State<EventsCarousel> {
             onTap: () {
               Navigator.of(context).push(
                 GentlePageTransition(
-                  page:EventDetailsPage(event: event), child: null,
+                  page:EventDetailsPage(event: event), 
                 ),
               );
             },

@@ -1,30 +1,63 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 class GentlePageTransition extends PageRouteBuilder {
   final Widget page;
 
-  GentlePageTransition({required this.page, required child})
+  GentlePageTransition({required this.page})
       : super(
           pageBuilder: (context, animation, secondaryAnimation) => page,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            // Offset values for slide transition
-            const begin = Offset(0.0, 1.0);
-            const end = Offset.zero;
-            const curve = Curves.easeInOutCubic;
+            // Create multiple animations
+            var fadeAnimation = Tween<double>(
+              begin: 0.2,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOut,
+              ),
+            );
 
-            // Create a tween with the offset values and apply the curve
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            var offsetAnimation = animation.drive(tween);
+            var scaleAnimation = Tween<double>(
+              begin: 0.98,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              ),
+            );
 
-            // Apply both SlideTransition and FadeTransition
-            return SlideTransition(
-              position: offsetAnimation,
+            // Reduced blur effect
+            var blurAnimation = Tween<double>(
+              begin: 2.0,
+              end: 0.0,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              ),
+            );
+
+            return BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: blurAnimation.value,
+                sigmaY: blurAnimation.value,
+              ),
               child: FadeTransition(
-                opacity: animation,
-                child: child,
+                opacity: fadeAnimation,
+                child: Transform.scale(
+                  scale: scaleAnimation.value,
+                  child: child,
+                ),
               ),
             );
           },
-          transitionDuration: const Duration(milliseconds: 700),
+          transitionDuration: const Duration(milliseconds: 400),
+          reverseTransitionDuration: const Duration(milliseconds: 300),
+          opaque: false,
+          barrierColor: Colors.black.withOpacity(0.1),
         );
 }

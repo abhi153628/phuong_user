@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:phuong/view/demo_event_detailed_page.dart';
+import 'package:phuong/view/search_screen/search_event_card_widget.dart';
 
 class EventModel {
   final String? eventId;

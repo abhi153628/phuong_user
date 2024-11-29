@@ -1,4 +1,3 @@
-// search_provider.dart
 import 'package:flutter/material.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/services/event_fetching_firebase_service.dart';
@@ -12,9 +11,11 @@ class SearchProvider extends ChangeNotifier {
   SearchType _searchType = SearchType.name;
   DateTime? _selectedStartDate;
   DateTime? _selectedEndDate;
+  bool _isLoading = true;
 
   List<EventModel> get filteredEvents => _filteredEvents;
   SearchType get searchType => _searchType;
+  bool get isLoading => _isLoading;
 
   SearchProvider() {
     _loadEvents();
@@ -22,12 +23,22 @@ class SearchProvider extends ChangeNotifier {
 
   Future<void> _loadEvents() async {
     try {
+      _isLoading = true;
+      notifyListeners();
+
       final events = await _eventService.getEvents();
       _allEvents = events;
       _filteredEvents = events;
+      
+      // Simulate a minimum loading time to prevent flash
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      _isLoading = false;
       notifyListeners();
     } catch (e) {
       print('Error loading events: $e');
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -40,7 +51,7 @@ class SearchProvider extends ChangeNotifier {
   }
 
   void _filterEvents(String query) {
-    if (query.isEmpty) {
+    if (query.isEmpty && _searchType != SearchType.date) {
       _filteredEvents = _allEvents;
       notifyListeners();
       return;
@@ -60,13 +71,14 @@ class SearchProvider extends ChangeNotifier {
           if (_selectedStartDate == null) return true;
           if (event.date == null) return false;
           if (_selectedEndDate == null) {
-            return event.date!.isAfter(_selectedStartDate!) || 
-                   event.date!.isAtSameMomentAs(_selectedStartDate!);
+            return event.date!.isAfter(_selectedStartDate!) ||
+                event.date!.isAtSameMomentAs(_selectedStartDate!);
           }
-          return event.date!.isAfter(_selectedStartDate!) && 
-                 event.date!.isBefore(_selectedEndDate!);
+          return event.date!.isAfter(_selectedStartDate!) &&
+              event.date!.isBefore(_selectedEndDate!);
       }
     }).toList();
+
     notifyListeners();
   }
 

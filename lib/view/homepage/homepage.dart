@@ -9,6 +9,7 @@ import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/homepage/search_bar.dart';
 import 'package:phuong/view/homepage/widgets/container_widget.dart';
 import 'package:phuong/view/homepage/widgets/event_carousel.dart';
+import 'package:phuong/view/search_screen/search_design.dart';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({Key? key}) : super(key: key);
@@ -90,7 +91,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                           _buildCategories(),
                           const SizedBox(height: 15),
                           if (!_isSearchBarSticky) 
-                            const CustomSearchBar(),
+                             InkWell(child: StunningSearchField()),
                         ],
                       ),
                     ),

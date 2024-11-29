@@ -222,7 +222,7 @@ class LoginFormContent extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context)
-                  .push(GentlePageTransition(page: const WelcomesScreen(), child: null));
+                  .push(GentlePageTransition(page: const WelcomesScreen(), ));
             },
             style: ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(
@@ -262,7 +262,7 @@ class LoginFormContent extends StatelessWidget {
               TextButton(
                   onPressed: () {
                     Navigator.of(context)
-                        .push(GentlePageTransition(page: const SignupPage(), child: null));
+                        .push(GentlePageTransition(page: const SignupPage(), ));
                   },
                   child: const Text('Sign up'))
             ],

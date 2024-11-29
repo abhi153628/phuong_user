@@ -1,77 +1,143 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:phuong/utils/cstm_transition.dart';
+import 'package:phuong/view/homepage/widgets/colors.dart';
+import 'package:phuong/view/search_screen/search_page.dart';
 
-class StunningSearchField extends StatelessWidget {
-  final TextEditingController searchController;
-  final ValueChanged<String> onSearch;
+class StunningSearchField extends StatefulWidget {
+  const StunningSearchField({Key? key}) : super(key: key);
 
-  StunningSearchField({
-    required this.searchController,
-    required this.onSearch,
-  });
+  @override
+  State<StunningSearchField> createState() => _StunningSearchFieldState();
+}
+
+class _StunningSearchFieldState extends State<StunningSearchField>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(-1.0, 0.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn,
+    ));
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+  
+
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          decoration: BoxDecoration(
+            color: Color(0xFF545f72),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(
+              color: AppColors.activeGreen.withOpacity(0.2),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.activeGreen.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 15,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 16),
-          Icon(Icons.search, color: Colors.grey[600], size: 26),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: searchController,
-              onChanged: onSearch,
-              style: const TextStyle(fontSize: 16),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintStyle: TextStyle(color: Colors.grey[400]),
-                hintText: '', // leave blank for animated text hint
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(15),
+      onTap: () {
+  Navigator.push(
+    context,
+    GentlePageTransition(page: EventSearchScreen(),),
+  );
+},
+
+
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.search_rounded,
+                      color: AppColors.activeGreen.withOpacity(0.8),
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DefaultTextStyle(
+                        style: GoogleFonts.syne(
+                          fontSize: 16,
+                          color: Colors.white70,
+                          letterSpacing: 1
+                        ),
+                        child: AnimatedTextKit(
+                          repeatForever: true,
+                          pause: const Duration(milliseconds: 1000),
+                          animatedTexts: [
+                            FadeAnimatedText(
+                              'Search for events...',
+                              duration: const Duration(milliseconds: 5000),
+                              fadeOutBegin: 0.8,
+                              fadeInEnd: 0.1,
+                            ),
+                            FadeAnimatedText(
+                              'Discover live performances',
+                              duration: const Duration(milliseconds: 5000),
+                              fadeOutBegin: 0.8,
+                              fadeInEnd: 0.1,
+                            ),
+                            FadeAnimatedText(
+                              'Find upcoming shows',
+                              duration: const Duration(milliseconds: 5000),
+                              fadeOutBegin: 0.8,
+                              fadeInEnd: 0.1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          Positioned(
-            left: 60,
-            child: SizedBox(
-              height: 30,
-              child: AnimatedTextKit(
-                repeatForever: true,
-                pause: const Duration(seconds: 2),
-                animatedTexts: [
-                  TypewriterAnimatedText(
-                    'Search for events...',
-                    textStyle: TextStyle(color: Colors.grey[400], fontSize: 16),
-                    speed: const Duration(milliseconds: 100),
-                  ),
-                  TypewriterAnimatedText(
-                    'Find something amazing...',
-                    textStyle: TextStyle(color: Colors.grey[400], fontSize: 16),
-                    speed: const Duration(milliseconds: 100),
-                  ),
-                  TypewriterAnimatedText(
-                    'Discover your next adventure...',
-                    textStyle: TextStyle(color: Colors.grey[400], fontSize: 16),
-                    speed: const Duration(milliseconds: 100),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-        ],
+        ),
       ),
     );
   }

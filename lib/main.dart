@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:phuong/firebase_options.dart';
 import 'package:phuong/repository/search_provider.dart';
 import 'package:phuong/view/homepage/homepage.dart';
+import 'package:phuong/view/search_screen/search_page.dart';
 import 'package:phuong/view/themes/light_mode.dart';
 import 'package:phuong/view/wrapper.dart';
 import 'package:provider/provider.dart';
@@ -46,7 +47,7 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(onPressed: () {}),
-      body: const Center(child: DiscoverScreen()),
+      body: const Center(child: Wrapper()),
     );
   }
 }

@@ -133,7 +133,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
     return ElevatedButton(
       onPressed: () {
         Navigator.of(context)
-            .push(GentlePageTransition(page: WelcomesScreen(), child: null));
+            .push(GentlePageTransition(page: WelcomesScreen(), ));
       },
       style: ElevatedButton.styleFrom(
         shape: RoundedRectangleBorder(
@@ -175,7 +175,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
         TextButton(
             onPressed: () {
               Navigator.of(context)
-                  .push(GentlePageTransition(page: LoginPage(), child: null));
+                  .push(GentlePageTransition(page: LoginPage(), ));
             },
             child: Text('Login'))
       ],

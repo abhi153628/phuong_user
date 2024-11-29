@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/utils/cstm_transition.dart';
+import 'package:phuong/view/event_detail_screen/payyyyy.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/payment_sucess_page/payment_sucess_pag.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
@@ -48,13 +49,13 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
     // Navigate to success screen
     Navigator.of(context).pushReplacement(
       GentlePageTransition(
-        page: PaymentSuccessScreen(
+        page: SuccessPage(
           event: widget.event,
           selectedSeats: _selectedSeats,
           totalAmount: _totalPrice,
-          key: GlobalKey(),
+          key: GlobalKey(), totalPrice: _totalPrice,
         ),
-        child: null,
+       
       ),
     );
   }

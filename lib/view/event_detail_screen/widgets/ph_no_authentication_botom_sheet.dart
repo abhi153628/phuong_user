@@ -103,7 +103,7 @@ class _PhoneAuthBottomSheetState extends State<PhoneAuthBottomSheet> {
   else{
     //! N A V I G A T I O N  TO  P A Y M E N T   G A T E W A Y
      Navigator.of(context).pushReplacement(
-        GentlePageTransition(page: DiscoverScreen(), child: null),
+        GentlePageTransition(page: DiscoverScreen(), ),
       );
   }
 
