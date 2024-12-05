@@ -5,14 +5,14 @@ import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/search_screen/search_page.dart';
 
-class StunningSearchField extends StatefulWidget {
-  const StunningSearchField({Key? key}) : super(key: key);
+class SearchBarHomeScreen extends StatefulWidget {
+  const SearchBarHomeScreen({Key? key}) : super(key: key);
 
   @override
-  State<StunningSearchField> createState() => _StunningSearchFieldState();
+  State<SearchBarHomeScreen> createState() => _SearchBarHomeScreenState();
 }
 
-class _StunningSearchFieldState extends State<StunningSearchField>
+class _SearchBarHomeScreenState extends State<SearchBarHomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
@@ -90,7 +90,7 @@ class _StunningSearchFieldState extends State<StunningSearchField>
 
 
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
                 child: Row(
                   children: [
                     Icon(

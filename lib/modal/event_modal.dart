@@ -23,6 +23,7 @@ class EventModel {
   final List<String>? eventRules;
   final Timestamp? createdAt;
   final Timestamp? updatedAt;
+   final bool isFree;
 
   EventModel({
     this.eventId,
@@ -45,6 +46,7 @@ class EventModel {
     this.eventRules,
     this.createdAt,
     this.updatedAt,
+      required this.isFree,
   });
 
   factory EventModel.fromMap(Map<String, dynamic> map) {
@@ -97,6 +99,7 @@ class EventModel {
       eventRules: eventRules,
       createdAt: map['createdAt'],
       updatedAt: map['updatedAt'],
+      isFree: map['isFree'] ?? true,
     );
   }
 }

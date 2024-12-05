@@ -1,14 +1,16 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/constants/colors.dart';
+import 'package:phuong/modal/event_modal.dart';
+import 'package:phuong/services/event_fetching_firebase_service.dart';
 
+import 'package:phuong/view/homepage/search_bar.dart';
 import 'package:phuong/view/homepage/widgets/category_button.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
-import 'package:phuong/view/homepage/search_bar.dart';
-import 'package:phuong/view/homepage/widgets/container_widget.dart';
+import 'package:phuong/view/homepage/widgets/home_event_card.dart';
+
 import 'package:phuong/view/homepage/widgets/event_carousel.dart';
+
 import 'package:phuong/view/search_screen/search_design.dart';
 
 class DiscoverScreen extends StatefulWidget {
@@ -20,11 +22,17 @@ class DiscoverScreen extends StatefulWidget {
 
 class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProviderStateMixin {
   int _selectedCategory = 0;
-  final List<String> categories = ['My feed', 'Concerts', 'Seminar', 'Theater'];
+  final List<String> categories = ['My feed', 'Rock', 'Classical', 'Pop', 'Jazz'];
   final ScrollController _scrollController = ScrollController();
   bool _isSearchBarSticky = false;
   late AnimationController _animationController;
   late Animation<double> _searchBarAnimation;
+
+  // Events and loading state
+  List<EventModel> _allEvents = [];
+  List<EventModel> _filteredEvents = [];
+  bool _isLoading = true;
+  final EventService _eventService = EventService();
 
   @override
   void initState() {
@@ -38,6 +46,59 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
       parent: _animationController,
       curve: Curves.easeInOutCubic,
     );
+
+    // Fetch events when screen initializes
+    _fetchEvents();
+  }
+
+  Future<void> _fetchEvents() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Fetch all events
+      _allEvents = await _eventService.getEvents();
+      
+      // Initially show all events or apply default filter
+      _filterEvents();
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching events: $e')),
+      );
+    }
+  }
+
+  void _filterEvents() {
+    setState(() {
+      // Filter logic based on selected category
+      switch (_selectedCategory) {
+        case 0: 
+          _filteredEvents = _allEvents;
+          break;
+        case 1: 
+          _filteredEvents = _allEvents.where((event) => event.genreType == 'Rock').toList();
+          break;
+        case 2: 
+          _filteredEvents = _allEvents.where((event) => event.genreType == 'Classical').toList();
+          break;
+        case 3: 
+          _filteredEvents = _allEvents.where((event) => event.genreType == 'Pop').toList();
+          break;
+        case 4: 
+          _filteredEvents = _allEvents.where((event) => event.genreType == 'Jazz').toList();
+          break;
+        default:
+          _filteredEvents = _allEvents;
+      }
+    });
   }
 
   @override
@@ -70,7 +131,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                 // Top Section with Gradient
                 Stack(
                   children: [
-                    // Gradient Container
                     Container(
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
@@ -83,7 +143,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                           bottomRight: Radius.circular(20),
                         ),
                       ),
-                      height: 280, // Reduced height
+                      height: 280,
                       child: Column(
                         children: [
                           _buildHeader(),
@@ -91,13 +151,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                           _buildCategories(),
                           const SizedBox(height: 15),
                           if (!_isSearchBarSticky) 
-                             InkWell(child: StunningSearchField()),
+                            const SearchBarHomeScreen(),
                         ],
                       ),
                     ),
                   ],
                 ),
-    
+
                 // Upcoming Events Section
                 Transform.translate(
                   offset: const Offset(0, -50),
@@ -116,11 +176,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                         ),
                       ),
                       const SizedBox(height: 20),
-                      EventsCarousel(),
+                      const EventsCarousel(),
                     ],
                   ),
                 ),
-    
+
                 // Nearby Events Section
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -136,19 +196,37 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                         ),
                       ),
                       const SizedBox(height: 20),
-                      WorkshopCard(),
-                      const SizedBox(height: 30),
-                      WorkshopCard(),
-                      const SizedBox(height: 30),
-                      WorkshopCard(),
-                      const SizedBox(height: 30),
+
+                      // Loading or No Events Handling
+                      _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _filteredEvents.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'No events found in this category',
+                                    style: GoogleFonts.syne(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                )
+                              : Column(
+                                  children: _filteredEvents.map((event) {
+                                    return Column(
+                                      children: [
+                                        HomeEventCard(event: event),
+                                        const SizedBox(height: 20),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-    
+
           // Sticky Search Bar with enhanced animation
           AnimatedBuilder(
             animation: _searchBarAnimation,
@@ -158,12 +236,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                   ? 0 
                   : -100 * (1 - _searchBarAnimation.value)),
                 child: Container(
-                  //! C O L O R 
-                  color: Color.lerp(
-                    Colors.transparent,
-                      Colors.transparent,
-                    _searchBarAnimation.value,
-                  ),
+                  color: Colors.transparent,
                   child: SafeArea(
                     bottom: false,
                     child: Opacity(
@@ -182,6 +255,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
       ),
     );
   }
+
+  // Other existing methods remain the same (_buildHeader(), _buildCategories())
    Widget _buildHeader() {
     return Padding(
       padding: EdgeInsets.all(15),
@@ -225,7 +300,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
       ),
     );
   }
-
+  
   Widget _buildCategories() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -238,13 +313,14 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
             child: CategoryButton(
               text: categories[index],
               isActive: _selectedCategory == index,
-              onTap: () => setState(() => _selectedCategory = index),
+              onTap: () {
+                setState(() => _selectedCategory = index);
+                _filterEvents(); // Apply filter when category changes
+              },
             ),
           ),
         ),
       ),
     );
   }
-
 }
-

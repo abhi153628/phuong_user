@@ -36,4 +36,28 @@ class EventService {
       rethrow;
     }
   }
+
+
+  Future<List<EventModel>> getEventsByGenre(String genre) async {
+    try {
+      // If genre is 'My feed', return all events
+      if (genre == 'My feed') {
+        return getEvents();
+      }
+
+      final snapshot = await _firestore
+          .collection('eventCollection')
+          .where('genre', isEqualTo: genre.toLowerCase())
+          .orderBy('date', descending: false)
+          .get();
+      
+      return snapshot.docs
+          .map((doc) => EventModel.fromMap(doc.data()))
+          .toList();
+    } catch (e) {
+      print('Error fetching events by genre: $e');
+      rethrow;
+    }
+  }
 }
+
