@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/modal/event_modal.dart';
-import 'package:phuong/constants/colors.dart';
+
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:ticket_widget/ticket_widget.dart';
-import 'package:pdf/pdf.dart';
+
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:lottie/lottie.dart';
+
 import 'dart:io';
 
 class SuccessPage extends StatefulWidget {

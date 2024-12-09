@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +8,7 @@ import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/view/event_detail_screen/widgets/event_terms_condition_widget.dart';
 import 'package:phuong/view/event_detail_screen/widgets/ph_no_authentication_botom_sheet.dart';
 import 'package:phuong/view/event_detail_screen/widgets/seat_availibility_bottom_sheet.dart';
+import 'package:phuong/view/event_organizer_view_page/event_organizer_view_page.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 
 class EventDetailsPage extends StatelessWidget {
@@ -56,8 +58,6 @@ class EventDetailsPage extends StatelessWidget {
                         style: GoogleFonts.notoSans(
                             fontSize: 15, color: white, letterSpacing: 1),
                       ),
-           
-
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -66,21 +66,24 @@ class EventDetailsPage extends StatelessWidget {
                     event: event,
                   ),
                   //! --------------------------
-                  SizedBox(height: 30,),
-                  Row(mainAxisAlignment: MainAxisAlignment.start,
+                  SizedBox(
+                    height: 30,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                     Text(
+                      Text(
                         'Event Terms & Conditions',
                         style: GoogleFonts.notoSans(
                             fontSize: 15, color: white, letterSpacing: 1),
                       ),
                     ],
                   ),
-                     const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-                     EventTermsAndConditions(
-                  eventRules: event.eventRules ?? [],
-                ),
+                  EventTermsAndConditions(
+                    eventRules: event.eventRules ?? [],
+                  ),
                   // Remove _buildBottomBar from here
                 ],
               ),
@@ -100,97 +103,94 @@ class EventDetailsPage extends StatelessWidget {
   }
 
   Widget _buildBottomBar(BuildContext context) {
-  return Container(
-    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          AppColors.activeGreen.withOpacity(0.7),
-          AppColors.activeGreen.withOpacity(0.9),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.activeGreen.withOpacity(0.7),
+            AppColors.activeGreen.withOpacity(0.9),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.activeGreen.withOpacity(0.3),
+            blurRadius: 15,
+            spreadRadius: 2,
+            offset: const Offset(0, 4),
+          ),
         ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
       ),
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        BoxShadow(
-          color: AppColors.activeGreen.withOpacity(0.3),
-          blurRadius: 15,
-          spreadRadius: 2,
-          offset: const Offset(0, 4),
+      child: ElevatedButton(
+        onPressed: () {
+          // TODO: Navigation to payment page
+          HapticFeedback.lightImpact();
+          // Add subtle haptic feedback
+          _showBookingBottomSheet(context, event);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 0,
         ),
-      ],
-    ),
-    child: ElevatedButton(
-      onPressed: () {
-        
-        // TODO: Navigation to payment page 
-        HapticFeedback.lightImpact(); 
-        // Add subtle haptic feedback
-        _showBookingBottomSheet(context,event);
- 
-        
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        elevation: 0,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Book Now',
-            style: GoogleFonts.syne(
-              color: Colors.black,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Book Now',
+              style: GoogleFonts.syne(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Icon(
-            Icons.arrow_forward_ios_rounded,
-            color: Colors.black,
-            size: 18,
-          ),
-        ],
+            const SizedBox(width: 10),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.black,
+              size: 18,
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   void _showBookingBottomSheet(BuildContext context, EventModel event) {
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.transparent,
-    builder: (context) => BookingBottomSheet(event: event),
-  );
-}
-void _showPhoneAuthBottomSheet(BuildContext context, EventModel event) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (context) => SingleChildScrollView(
-      child: Container(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => BookingBottomSheet(event: event),
+    );
+  }
+
+  void _showPhoneAuthBottomSheet(BuildContext context, EventModel event) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => SingleChildScrollView(
+        child: Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: PhoneAuthBottomSheet(),
         ),
-        child: PhoneAuthBottomSheet(),
       ),
-    ),
-  ).then((verified) {
-    if (verified == true) {
-      // User is verified, proceed to seat booking
-      // You can add your seat booking logic here
-    }
-  });
-}
+    ).then((verified) {
+      if (verified == true) {
+        // User is verified, proceed to seat booking
+        // You can add your seat booking logic here
+      }
+    });
+  }
 }
 
 class MainContentWidget extends StatelessWidget {
@@ -354,7 +354,7 @@ class EventNameWidget extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildEventDetails(),
+          _buildEventDetails(context),
           SizedBox(width: screenWidth * 0.03),
           _buildPriceContainer(),
         ],
@@ -362,7 +362,7 @@ class EventNameWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildEventDetails() {
+  Widget _buildEventDetails(BuildContext context) {
     return Expanded(
       flex: 7,
       child: Column(
@@ -415,43 +415,61 @@ class EventNameWidget extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: 10,),
+          SizedBox(
+            height: 10,
+          ),
           //! O R G A N I Z E R   N A M E
-           Container(
-            width: double.infinity,
-         
-            child: Row(
-              children: [
-                Container(
-                  width: screenWidth * 0.10,
-                  height: screenWidth * 0.10,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2A2D31),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.person,
-                    color: Colors.white70,
-                    size: screenWidth * 0.05,
-                  ),
-                ),
-                SizedBox(width: 10),
-                InkWell(onTap: (){
-                  // todo : navigating to profile view screen
-                },
-                  child: Text(
-                    event.organizerName ?? 'Organizer Name',
-                    style: GoogleFonts.notoSans(
-                      fontSize: screenWidth * 0.04,
-                      color: AppColors.activeGreen.withOpacity(0.9),
-                      fontWeight: FontWeight.w700,
+          Container(
+              width: double.infinity,
+              child: Row(
+                children: [
+                  Container(
+                    width: screenWidth * 0.10,
+                    height: screenWidth * 0.10,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2A2D31),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 3,
+                    child: Icon(
+                      Icons.person,
+                      color: Colors.white70,
+                      size: screenWidth * 0.05,
+                    ),
                   ),
-                ),
-              ],
-           )),
+                  SizedBox(width: 10),
+                  // In your event detail page widget
+                  GestureDetector(
+                    onTap: () {
+                      if (event.organizerId != null &&
+                          event.organizerId!.isNotEmpty) {
+                            log('${event.organizerId}');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => UserOrganizerProfileScreen(
+                              organizerId: event.organizerId!,
+                            ),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('Organizer information not available')),
+                        );
+                      }
+                    },
+                    child: Text(
+                      event.organizerName ?? 'Unknown Organizer',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              )),
         ],
       ),
     );

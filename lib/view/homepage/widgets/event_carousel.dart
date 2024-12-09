@@ -7,7 +7,7 @@ import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/services/event_fetching_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/event_detail_screen/widgets/fields_event_details_widget.dart';
-import 'package:phuong/view/new_event_detailed_page.dart';
+
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';

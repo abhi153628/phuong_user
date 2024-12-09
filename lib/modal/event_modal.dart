@@ -6,6 +6,7 @@ class EventModel {
   final String? eventId;
   final String? eventName;
   final String? organizerName;
+  final String ?organizerId;
   final String? description;
   final double? ticketPrice;
   final String? instagramLink;
@@ -29,6 +30,7 @@ class EventModel {
     this.eventId,
     this.eventName,
     this.organizerName,
+    this.organizerId,
     this.description,
     this.ticketPrice,
     this.instagramLink,
@@ -82,6 +84,7 @@ class EventModel {
       eventId: map['eventId'],
       eventName: map['eventName'],
       organizerName: map['organizerName'],
+      organizerId: map['organizerId'],
       description: map['description'],
       ticketPrice: map['ticketPrice']?.toDouble(),
       instagramLink: map['instagramLink'],
