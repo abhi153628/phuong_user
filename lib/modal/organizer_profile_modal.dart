@@ -1,5 +1,3 @@
-// models/organizer_profile.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class OrganizerProfile {
@@ -8,8 +6,7 @@ class OrganizerProfile {
   final String? bio;
   final String? imageUrl;
   final List<String>? links;
-
-  final List<Post>? posts;
+  final List<Post> posts;
 
   OrganizerProfile({
     required this.id,
@@ -17,25 +14,8 @@ class OrganizerProfile {
     this.bio,
     this.imageUrl,
     this.links,
-
-    this.posts,
+    required this.posts,
   });
-
-  factory OrganizerProfile.fromJson(Map<String, dynamic> json) {
-    return OrganizerProfile(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      bio: json['bio'] as String?,
-      imageUrl: json['imageUrl'] as String?,
-      links: (json['links'] as List?)?.map((e) => e as String).toList(),
- 
-      posts: json['posts'] != null
-          ? (json['posts'] as List)
-              .map((post) => Post.fromJson(post as Map<String, dynamic>))
-              .toList()
-          : null,
-    );
-  }
 }
 
 class Post {
@@ -55,12 +35,11 @@ class Post {
 
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
-      id: json['id'] as String,
-      userId: json['userId'] as String,
-      imageUrl: json['imageUrl'] as String,
-      description: json['description'] as String,
-      createdAt: (json['createdAt'] as Timestamp).toDate(),
+      id: json['id'] ?? '',
+      userId: json['userId'] ?? '',
+      imageUrl: json['imageUrl'] ?? '',
+      description: json['description'] ?? '',
+      createdAt: (json['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 }
-
