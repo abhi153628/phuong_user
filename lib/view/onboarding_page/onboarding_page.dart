@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/utils/cstm_transition.dart';
+import 'package:phuong/view/auth_screens/auth_screen.dart';
 import 'package:phuong/view/login_page/login_page.dart';
 import 'package:phuong/view/onboarding_page/widgets/widgets.dart';
 
@@ -205,7 +206,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             curve: Curves.ease,
           );
         } else {
-          Navigator.of(context).push(GentlePageTransition(page: LoginPage(),));
+          Navigator.of(context).push(GentlePageTransition(page: Helo(),));
         }
       },
       style: ElevatedButton.styleFrom(

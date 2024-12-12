@@ -6,7 +6,6 @@ import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/event_detail_screen/payment_sucess_page.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
-import 'package:phuong/view/payment_sucess_page/payment_sucess_pag.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 

@@ -8,6 +8,7 @@ import 'package:phuong/view/homepage/homepage.dart';
 import 'package:phuong/view/homepage/text_styles.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/onboarding_page/onboarding_page.dart';
+import 'package:phuong/view/settings/settings_page.dart';
 import 'package:phuong/view/welcomepage/welcomes_screen.dart';
 
 
@@ -26,6 +27,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
     DiscoverScreen(),
     WelcomesScreen(),
     OnboardingScreen(),
+    SettingsPage()
    
   ];
 
