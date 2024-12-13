@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/modal/event_modal.dart';
+import 'package:phuong/view/chat_section/chat_listing_screen.dart';
+import 'package:phuong/view/chat_section/chat_view_screen.dart';
 import 'package:phuong/view/event_detail_screen/widgets/fields_event_details_widget.dart';
 
 import 'package:phuong/view/homepage/homepage.dart';
@@ -23,10 +25,10 @@ class BottomNavbar extends StatefulWidget {
 var currentIndex = 0;
 
 class _BottomNavbarState extends State<BottomNavbar> {
-  static const List<Widget> screens = [
+  static  List<Widget> screens = [
     DiscoverScreen(),
-    WelcomesScreen(),
-    OnboardingScreen(),
+    UserChatScreen(organizerId: '',),
+    UserChatListScreen(),
     SettingsPage()
    
   ];

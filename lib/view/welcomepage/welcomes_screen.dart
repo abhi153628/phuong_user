@@ -1,12 +1,8 @@
 // ignore_for_file: deprecated_member_use
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/view/auth_screens/auth_screen.dart';
-import 'package:phuong/view/homepage/homepage.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
-import 'package:phuong/view/signup_page/signup_page.dart';
 import 'package:phuong/view/welcomepage/widgets/widgets.dart';
 
 class WelcomesScreen extends StatelessWidget {
@@ -80,8 +76,8 @@ class WelcomesScreen extends StatelessWidget {
                         );
                       },
                       child: Container(
-                        height: 70,
-                        width: w * 0.99,
+                        height: 65,
+                        width: w * 0.79,
                         margin:  EdgeInsets.only(
                             bottom: 20, left: 20, right: 20),
                         decoration: const BoxDecoration(

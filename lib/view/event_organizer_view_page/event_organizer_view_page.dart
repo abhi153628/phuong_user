@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 
 import 'package:phuong/modal/organizer_profile_modal.dart';
 import 'package:phuong/services/organizer_profile_firebase_service.dart';
+import 'package:phuong/utils/cstm_transition.dart';
+import 'package:phuong/view/chat_section/chat_view_screen.dart';
+import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:shimmer/shimmer.dart';
 
 class UserOrganizerProfileScreen extends StatefulWidget {
@@ -16,15 +19,16 @@ class UserOrganizerProfileScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<UserOrganizerProfileScreen> createState() => _UserOrganizerProfileScreenState();
+  State<UserOrganizerProfileScreen> createState() =>
+      _UserOrganizerProfileScreenState();
 }
 
-class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen> 
+class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
     with SingleTickerProviderStateMixin {
   late final UserOrganizerProfileService _profileService;
   late final AnimationController _animationController;
   late final Animation<double> _fadeAnimation;
-  
+
   OrganizerProfile? _profile;
   bool _isLoading = true;
 
@@ -32,24 +36,24 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
   void initState() {
     super.initState();
     _profileService = UserOrganizerProfileService();
-    
+
     // Initialize animations
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn)
-    );
-    
+        CurvedAnimation(parent: _animationController, curve: Curves.easeIn));
+
     _fetchOrganizerProfile();
   }
 
   Future<void> _fetchOrganizerProfile() async {
     try {
-      final profile = await _profileService.fetchOrganizerProfile(widget.organizerId);
-      
+      final profile =
+          await _profileService.fetchOrganizerProfile(widget.organizerId);
+
       if (mounted) {
         setState(() {
           _profile = profile;
@@ -89,18 +93,23 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.message, color: Colors.greenAccent),
+            icon: const Icon(Icons.message, color: AppColors.activeGreen),
             onPressed: () {
               // Implement message functionality
             },
           ),
         ],
       ),
-      body: _isLoading 
-          ? const _LoadingView()
-          : _profile == null 
-              ? const Text('data')
-              : _ProfileView(profile: _profile!, fadeAnimation: _fadeAnimation),
+      body: _isLoading
+    ? const _LoadingView()
+    : _profile == null
+        ? const Text('No data')
+        : _ProfileView(
+            profile: _profile!,
+            fadeAnimation: _fadeAnimation,
+            organizerId: widget.organizerId, // Pass organizerId here
+          ),
+
     );
   }
 }
@@ -157,9 +166,11 @@ class _LoadingPlaceholder extends StatelessWidget {
 class _ProfileView extends StatelessWidget {
   final OrganizerProfile profile;
   final Animation<double> fadeAnimation;
+    final String organizerId;
 
   const _ProfileView({
     Key? key,
+    required this.organizerId,
     required this.profile,
     required this.fadeAnimation,
   }) : super(key: key);
@@ -193,116 +204,128 @@ class _ProfileView extends StatelessWidget {
   }
   // Inside _ProfileView class, add these missing methods:
 
-Widget _buildProfileStats() {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    children: [
-      _buildStatColumn('Posts', profile.posts?.length.toString() ?? '0'),
-      _buildStatColumn('Followers', '0'), // Replace with actual followers count
-      _buildStatColumn('Following', '0'), // Replace with actual following count
-    ],
-  );
-}
-
-Widget _buildStatColumn(String label, String count) {
-  return Column(
-    children: [
-      Text(
-        count,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
-      const SizedBox(height: 4),
-      Text(
-        label,
-        style: TextStyle(
-          fontSize: 14,
-          color: Colors.white.withOpacity(0.8),
-        ),
-      ),
-    ],
-  );
-}
-
-Widget _buildBio() {
-  if (profile.bio == null || profile.bio!.isEmpty) return const SizedBox();
-  
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16),
-    child: Text(
-      profile.bio!,
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 14,
-      ),
-      textAlign: TextAlign.center,
-    ),
-  );
-}
-
-Widget _buildLinks() {
-  if (profile.links == null || profile.links!.isEmpty) return const SizedBox();
-
-  return Column(
-    children: profile.links!.map((link) => Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: InkWell(
-        onTap: () {
-          // Implement link handling
-        },
-        child: Text(
-          link,
-          style: const TextStyle(
-            color: Colors.greenAccent,
-            fontSize: 14,
-            decoration: TextDecoration.underline,
-          ),
-        ),
-      ),
-    )).toList(),
-  );
-}
-
-Widget _buildActionButtons(BuildContext context) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16),
-    child: Row(
+  Widget _buildProfileStats() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Expanded(
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.greenAccent,
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            onPressed: () {
-              // Implement message functionality
-            },
-            child: const Text('Message'),
+        _buildStatColumn('Posts', profile.posts?.length.toString() ?? '0'),
+        _buildStatColumn(
+            'Followers', '0'), // Replace with actual followers count
+        _buildStatColumn(
+            'Following', '0'), // Replace with actual following count
+      ],
+    );
+  }
+
+  Widget _buildStatColumn(String label, String count) {
+    return Column(
+      children: [
+        Text(
+          count,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Colors.greenAccent),
-              foregroundColor: Colors.greenAccent,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            onPressed: () {
-              // Implement follow functionality
-            },
-            child: const Text('Follow'),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.white.withOpacity(0.8),
           ),
         ),
       ],
-    ),
-  );
-}
+    );
+  }
 
+  Widget _buildBio() {
+    if (profile.bio == null || profile.bio!.isEmpty) return const SizedBox();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Text(
+        profile.bio!,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildLinks() {
+    if (profile.links == null || profile.links!.isEmpty)
+      return const SizedBox();
+
+    return Column(
+      children: profile.links!
+          .map((link) => Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: InkWell(
+                  onTap: () {
+                    // Implement link handling
+                  },
+                  child: Text(
+                    link,
+                    style: const TextStyle(
+                      color: AppColors.activeGreen,
+                      fontSize: 14,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ))
+          .toList(),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.activeGreen,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              onPressed: () {
+           
+                {
+                  Navigator.of(context).push(
+                    GentlePageTransition(
+                      page: UserChatScreen(organizerId: organizerId),
+                    ),
+                  );
+                };
+              },
+              child: const Text('Message'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.activeGreen),
+                foregroundColor: AppColors.activeGreen,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              onPressed: () {
+                // Implement follow functionality
+              },
+              child: const Text('Follow'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildProfileHeader() {
     return Hero(
@@ -312,18 +335,18 @@ Widget _buildActionButtons(BuildContext context) {
         height: 120,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.greenAccent, width: 2),
+          border: Border.all(color: AppColors.activeGreen, width: 2),
         ),
         child: ClipOval(
           child: CachedNetworkImage(
             imageUrl: profile.imageUrl ?? '',
             fit: BoxFit.cover,
             placeholder: (context, url) => const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.greenAccent),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.activeGreen),
             ),
             errorWidget: (context, url, error) => const Icon(
               Icons.person,
-              color: Colors.greenAccent,
+              color: AppColors.activeGreen,
               size: 60,
             ),
           ),
@@ -332,41 +355,39 @@ Widget _buildActionButtons(BuildContext context) {
     );
   }
 
-Widget _buildPostsGrid() {
-  if (profile.posts.isEmpty) {
-  return SliverToBoxAdapter(
-    child: Center(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Text(
-          'No posts yet',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.6),
-            fontSize: 16,
+  Widget _buildPostsGrid() {
+    if (profile.posts.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text(
+              'No posts yet',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 16,
+              ),
+            ),
           ),
         ),
+      );
+    }
+
+    return SliverGrid(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: 2,
+        crossAxisSpacing: 2,
       ),
-    ),
-  );
-}
-
-
-  return SliverGrid(
-    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 3,
-      mainAxisSpacing: 2,
-      crossAxisSpacing: 2,
-    ),
-    delegate: SliverChildBuilderDelegate(
-      (context, index) {
-        final post = profile.posts![index];
-        return _PostThumbnail(post: post);
-      },
-      childCount: profile.posts!.length,
-    ),
-  );
-  
-}
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final post = profile.posts![index];
+          return _PostThumbnail(post: post);
+        },
+        childCount: profile.posts!.length,
+      ),
+    );
+  }
 }
 
 class _PostThumbnail extends StatelessWidget {
@@ -391,7 +412,8 @@ class _PostThumbnail extends StatelessWidget {
               color: Colors.grey[900],
               child: const Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.greenAccent),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(AppColors.activeGreen),
                 ),
               ),
             ),
