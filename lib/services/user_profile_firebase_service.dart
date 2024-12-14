@@ -17,6 +17,7 @@ class UserProfileService {
   Future<void> updateUserProfile(UserProfile userProfile) async {
     try {
       await _firestore.collection('userProfiles').doc(userId).set({
+        'userId': userId, // Save the user ID explicitly
         'name': userProfile.name,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -31,7 +32,11 @@ class UserProfileService {
     try {
       final doc = await _firestore.collection('userProfiles').doc(userId).get();
       if (doc.exists && doc.data() != null) {
-        return UserProfile.fromJson(doc.data()!);
+        final data = doc.data()!;
+        return UserProfile.fromJson({
+          ...data,
+          'userId': userId, // Add the userId when deserializing
+        });
       }
       return null;
     } catch (e) {

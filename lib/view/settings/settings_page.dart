@@ -166,7 +166,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     try {
       await _userProfileService.updateUserProfile(
-        UserProfile(name: newName),
+        UserProfile(name: newName, userId: ''),
       );
 
       // Immediately update the UI
