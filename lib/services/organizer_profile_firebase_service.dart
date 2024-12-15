@@ -53,6 +53,34 @@ class UserOrganizerProfileService {
           .toList();
     });
   }
+   //! Function to fetch all organizers
+  Future<List<OrganizerProfile>> getAllOrganizers() async {
+    try {
+      log('Fetching all organizers from the database');
+      // Query all documents from the 'organizers' collection
+      final QuerySnapshot querySnapshot =
+          await _firestore.collection('organizers').get();
+
+      if (querySnapshot.docs.isEmpty) {
+        log('No organizers found');
+        return [];
+      }
+
+      // Map each document to an OrganizerProfile
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+
+        // Add the document ID to the data
+        data['id'] = doc.id;
+
+        // Create and return OrganizerProfile
+        return OrganizerProfile.fromJson(data);
+      }).toList();
+    } catch (error) {
+      log('Error fetching all organizers: $error');
+      return [];
+    }
+  }
 }
 
   

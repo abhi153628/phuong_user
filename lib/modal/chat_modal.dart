@@ -9,6 +9,7 @@ class ChatMessage {
   final String content;
   final Timestamp timestamp;
   final bool isRead;
+  final List<String> deletedFor;
 
   ChatMessage({
     required this.id,
@@ -18,6 +19,7 @@ class ChatMessage {
     required this.content,
     required this.timestamp,
     this.isRead = false,
+    this.deletedFor = const [],
   });
 
   factory ChatMessage.fromFirestore(DocumentSnapshot doc) {
@@ -30,6 +32,7 @@ class ChatMessage {
       content: data['content'] ?? '',
       timestamp: data['timestamp'] ?? Timestamp.now(),
       isRead: data['isRead'] ?? false,
+      deletedFor: List<String>.from(data['deletedFor'] ?? []),
     );
   }
 
@@ -41,6 +44,7 @@ class ChatMessage {
       'content': content,
       'timestamp': timestamp,
       'isRead': isRead,
+      'deletedFor': deletedFor,
     };
   }
 }
@@ -48,6 +52,7 @@ class ChatMessage {
 class ChatRoom {
   final String id;
   final String userId;
+  final String senderName;
   final String organizerId;
   final Timestamp lastMessageTimestamp;
   final String lastMessage;
@@ -55,6 +60,7 @@ class ChatRoom {
   ChatRoom({
     required this.id,
     required this.userId,
+    required this.senderName,
     required this.organizerId,
     required this.lastMessageTimestamp,
     required this.lastMessage,
@@ -65,6 +71,7 @@ class ChatRoom {
     return ChatRoom(
       id: doc.id,
       userId: data['userId'] ?? '',
+      senderName: data['senderName'] ?? '',
       organizerId: data['organizerId'] ?? '',
       lastMessageTimestamp: data['lastMessageTimestamp'] ?? Timestamp.now(),
       lastMessage: data['lastMessage'] ?? '',
@@ -75,6 +82,7 @@ class ChatRoom {
     return {
       'userId': userId,
       'organizerId': organizerId,
+      'senderName': senderName,
       'lastMessageTimestamp': lastMessageTimestamp,
       'lastMessage': lastMessage,
     };
