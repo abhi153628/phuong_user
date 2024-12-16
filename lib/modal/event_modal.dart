@@ -25,6 +25,13 @@ class EventModel {
   final Timestamp? createdAt;
   final Timestamp? updatedAt;
    final bool isFree;
+   final String? bookingId;
+  final String? userId;
+  final int? bookedSeats;
+  final double? totalAmount;
+  final DateTime? bookingDate;
+  final String? paymentId;
+  final String? bookingStatus;
 
   EventModel({
     this.eventId,
@@ -49,6 +56,13 @@ class EventModel {
     this.createdAt,
     this.updatedAt,
       required this.isFree,
+          this.bookingId,
+    this.userId,
+    this.bookedSeats,
+    this.totalAmount,
+    this.bookingDate,
+    this.paymentId,
+    this.bookingStatus,
   });
 
   factory EventModel.fromMap(Map<String, dynamic> map) {
@@ -103,7 +117,26 @@ class EventModel {
       createdAt: map['createdAt'],
       updatedAt: map['updatedAt'],
       isFree: map['isFree'] ?? true,
+       bookingId: map['bookingId'],
+      userId: map['userId'],
+      bookedSeats: map['bookedSeats'],
+      totalAmount: map['totalAmount']?.toDouble(),
+      bookingDate: map['bookingDate']?.toDate(),
+      paymentId: map['paymentId'],
+      bookingStatus: map['bookingStatus'],
     );
+  }
+   Map<String, dynamic> toMap() {
+    return {
+      
+      'bookingId': bookingId,
+      'userId': userId,
+      'bookedSeats': bookedSeats,
+      'totalAmount': totalAmount,
+      'bookingDate': bookingDate,
+      'paymentId': paymentId,
+      'bookingStatus': bookingStatus,
+    };
   }
 }
 
@@ -113,4 +146,5 @@ TimeOfDay timeOfDayFromString(String timeString) {
   final hour = int.parse(parts[0]);
   final minute = int.parse(parts[1]);
   return TimeOfDay(hour: hour, minute: minute);
+  
 }
