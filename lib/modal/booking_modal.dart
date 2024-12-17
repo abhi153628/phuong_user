@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BookingModel {
   final String? bookingId;
+  
   final String eventId;
   final String userId;
   final int seatsBooked;

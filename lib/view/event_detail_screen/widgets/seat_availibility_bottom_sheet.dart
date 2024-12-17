@@ -8,6 +8,7 @@ import 'package:phuong/services/event_fetching_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/event_detail_screen/payment_sucess_page.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
+import 'package:phuong/view/text';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -46,6 +47,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
   // Handle successful payments
 void _handlePaymentSuccess(PaymentSuccessResponse response) async {
   try {
+       final DateTime paymentDateTime = DateTime.now();
     // Create booking after successful payment
     final success = await _bookingService.bookEvent(
       widget.event,
@@ -60,10 +62,13 @@ void _handlePaymentSuccess(PaymentSuccessResponse response) async {
       
       Navigator.of(context).pushReplacement(
         GentlePageTransition(
-          page: SuccessPage(
+          page: 
+          MinimalistSuccessPage(
             event: widget.event,
             selectedSeats: _selectedSeats,
-            totalAmount: _totalPrice,
+            dateTime: paymentDateTime,
+            transactionId: response.paymentId ?? 'N/A',
+           
             key: GlobalKey(),
             totalPrice: _totalPrice,
           ),

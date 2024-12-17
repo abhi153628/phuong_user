@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/constants/colors.dart';
+import 'package:phuong/modal/booking_modal.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/view/event_detail_screen/widgets/event_terms_condition_widget.dart';
 import 'package:phuong/view/event_detail_screen/widgets/ph_no_authentication_botom_sheet.dart';
@@ -15,7 +16,7 @@ class EventDetailsPage extends StatelessWidget {
   final EventModel event;
   const EventDetailsPage({
     Key? key,
-    required this.event,
+    required this.event, 
   }) : super(key: key);
 
   @override

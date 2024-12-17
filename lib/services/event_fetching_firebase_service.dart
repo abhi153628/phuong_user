@@ -79,38 +79,12 @@ class EventService {
         .snapshots()
         .map((snapshot) {
       if (snapshot.exists) {
-        return EventModel.fromMap(snapshot.data()!);
+        return EventModel.fromMap(snapshot.data()!,);
       }
       return null;
     });
   }
-   Future<bool> checkSeatAvailability(String eventId, int requestedSeats) async {
-    try {
-      final doc = await _firestore
-          .collection('eventCollection')
-          .doc(eventId)
-          .get();
-      
-      if (!doc.exists) return false;
-      
-      double availableSeats = doc.data()?['seatAvailabilityCount'] ?? 0.0;
-      return availableSeats >= requestedSeats;
-    } catch (e) {
-      print('Error checking seat availability: $e');
-      return false;
-    }
-  }
-
-  // Add method to get organizer's events
-  Stream<List<EventModel>> getOrganizerEvents(String organizerId) {
-    return _firestore
-        .collection('eventCollection')
-        .where('organizerId', isEqualTo: organizerId)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => EventModel.fromMap(doc.data()))
-            .toList());
-  }
+  
 }
 
 

@@ -1,194 +1,92 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
+import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/event_modal.dart';
-
 import 'package:phuong/view/homepage/widgets/colors.dart';
-import 'package:ticket_widget/ticket_widget.dart';
-
-import 'package:pdf/widgets.dart' as pw;
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'dart:io';
-
-class SuccessPage extends StatefulWidget {
+class MinimalistSuccessPage extends StatefulWidget {
   final EventModel event;
   final int selectedSeats;
   final double totalPrice;
+  final DateTime dateTime;
+  final String transactionId;
 
-  const SuccessPage({
-    Key? key,
-    required this.event,
-    required this.selectedSeats,
-    required this.totalPrice,
-    required double totalAmount,
-  }) : super(key: key);
+  const MinimalistSuccessPage(
+      {Key? key,
+      required this.event,
+      required this.selectedSeats,
+      required this.totalPrice,
+      required this.dateTime,
+      required this.transactionId})
+      : super(key: key);
 
   @override
-  State<SuccessPage> createState() => _SuccessPageState();
+  _MinimalistSuccessPageState createState() => _MinimalistSuccessPageState();
 }
 
-class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+class _MinimalistSuccessPageState extends State<MinimalistSuccessPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
+    _scaleAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
+        CurvedAnimation(
+            parent: _animationController, curve: Curves.elasticOut));
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+            CurvedAnimation(
+                parent: _animationController, curve: Curves.decelerate));
 
-    _controller.forward();
+    _animationController.forward();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
-  Future<void> _generateAndDownloadTicket() async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.Page(
-        build: (pw.Context context) {
-          return pw.Center(
-            child: pw.Column(
-              mainAxisAlignment: pw.MainAxisAlignment.center,
-              children: [
-                pw.Text(
-                  'Event Ticket',
-                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
-                ),
-                pw.SizedBox(height: 20),
-                pw.Text('Event: ${widget.event.eventName}'),
-                pw.SizedBox(height: 10),
-                pw.Text('Seats: ${widget.selectedSeats}'),
-                pw.SizedBox(height: 10),
-                pw.Text('Amount Paid: ₹${widget.totalPrice.toStringAsFixed(2)}'),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/ticket.pdf');
-    await file.writeAsBytes(await pdf.save());
-
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Ticket downloaded successfully!')),
-    );
-  }
-
-  void _shareTicket() {
-    Share.share(
-      'Check out my ticket for ${widget.event.eventName}!\n'
-      'Seats: ${widget.selectedSeats}\n'
-      'Amount Paid: ₹${widget.totalPrice.toStringAsFixed(2)}',
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+  void _showTicketDetails() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
-      ),
-      body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Success Animation
-              // FadeTransition(
-              //   opacity: _fadeAnimation,
-              //   child: Lottie.network(
-              //     'assets/animations/Animation - 1732721061827.json',
-              //     height: 200,
-              //     repeat: false,
-              //   ),
-              // ),
-              
-
-              // Ticket Widget
-              ScaleTransition(
-                scale: _scaleAnimation,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: TicketWidget(
-                    width: 350,
-                    height: 480,
-                    isCornerRounded: true,
-                    padding: EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        Text(
-                          widget.event.eventName ?? '',
-                          style: GoogleFonts.syne(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.activeGreen,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 20),
-                        _buildTicketInfo('Date', widget.event.eventName ?? ''),
-                        // _buildTicketInfo('Time', widget.event.time ?? ''),
-                        _buildTicketInfo('Seats', '${widget.selectedSeats}'),
-                        _buildTicketInfo(
-                          'Amount',
-                          '₹${widget.totalPrice.toStringAsFixed(2)}',
-                        ),
-                        SizedBox(height: 20),
-                        // QR Code placeholder
-                        Container(
-                          width: 150,
-                          height: 150,
-                          color: Colors.grey[200],
-                          child: Icon(Icons.qr_code, size: 100),
-                        ),
-                      ],
-                    ),
-                  ),
+              Text(
+                'Ticket Details',
+                style: GoogleFonts.roboto(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-
-              // Action Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildActionButton(
-                    icon: Icons.download,
-                    label: 'Download',
-                    onPressed: _generateAndDownloadTicket,
-                  ),
-                  _buildActionButton(
-                    icon: Icons.share,
-                    label: 'Share',
-                    onPressed: _shareTicket,
-                  ),
-                ],
-              ),
+              const SizedBox(height: 20),
+              _buildDetailRow('Event', widget.event.eventName ?? 'N/A'),
+              // _buildDetailRow('Date', widget.event.date ?? 'N/A'),
+              _buildDetailRow('Seats', '${widget.selectedSeats}'),
+              _buildDetailRow(
+                  'Total Amount', '₹${widget.totalPrice.toStringAsFixed(2)}'),
             ],
           ),
         ),
@@ -196,28 +94,186 @@ class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildTicketInfo(String label, String value) {
+  Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: GoogleFonts.notoSans(
+            style: GoogleFonts.roboto(
+              color: Colors.white70,
               fontSize: 16,
-              color: Colors.grey,
             ),
           ),
           Text(
             value,
-            style: GoogleFonts.notoSans(
+            style: GoogleFonts.roboto(
+              color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Column(
+              children: [
+                // Success Animation
+                Stack(children: [
+                  Lottie.asset(
+                    'assets/animations/order_success_lottie.json',
+                    height: 350,
+                    repeat: false,
+                  ),
+                  Positioned(
+                    top: 280,
+                    left: 70,
+                    child: Text(
+                      'Payment Successful',
+                      style: GoogleFonts.syne(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  //! Organizer Name
+                  Positioned(
+                    top: 310,
+                    left: 140,
+                    child: Text(
+                      'to ${widget.event.organizerName?[0].toUpperCase()}${widget.event.organizerName?.substring(1).toLowerCase()}',
+                      style: GoogleFonts.notoSans(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ]),
+                //! Total Amount
+                Text(
+                  '₹ ${widget.totalPrice.toString()}',
+                  style: GoogleFonts.roboto(
+                    color: AppColors.activeGreen,
+                    fontSize: 45,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                // Payment Success Title
+
+                const SizedBox(height: 60),
+                Container(
+                  decoration: BoxDecoration(
+                      color: AppColors.activeGreen.withOpacity(0.07),
+                      borderRadius: BorderRadius.circular(8)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(18.0),
+                    child: Text(
+                      'Thank you for your purchase',
+                      style: GoogleFonts.syne(
+                          color: AppColors.activeGreen,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  DateFormat('d MMMM y | h:mm a').format(widget.dateTime),
+                  style: GoogleFonts.notoSans(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                Text(
+                  'UPI Transaction ID:  ${widget.transactionId}',
+                  style: GoogleFonts.notoSans(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+               InkWell(onTap: () => _showTicketDetails,
+                 child: Text(
+                      'View Details',
+                      style: GoogleFonts.notoSans(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                       
+                      ),
+                    ),
+               ),
+                  SizedBox(height: 4,),
+                
+           Container(height: 2,width: 80,color: white,),
+
+                const SizedBox(height: 30),
+
+                // Action Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildActionButton(
+                      icon: Icons.confirmation_number_outlined,
+                      label: 'View Ticket',
+                      onPressed: _showTicketDetails,
+                    ),
+                    const SizedBox(width: 30),
+                    _buildActionButton(
+                      icon: Icons.share_outlined,
+                      label: 'Share',
+                      onPressed: () {
+                        Share.share(
+                          'Check out my ticket for ${widget.event.eventName}!\n'
+                          'Seats: ${widget.selectedSeats}\n'
+                          'Amount Paid: ₹${widget.totalPrice.toStringAsFixed(2)}',
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 50,),
+               Row(mainAxisAlignment: MainAxisAlignment.center,
+                 children: [
+
+                   Text(
+                      'Powered by',
+                      style: GoogleFonts.notoSans(
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                       
+                      ),
+                    ),SizedBox(width: 10,),
+                   Image.asset('assets/welcomepageassets/razorpay_logo.png',height: 20,),
+                 ],
+               )
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -229,20 +285,22 @@ class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStat
   }) {
     return ElevatedButton.icon(
       onPressed: onPressed,
-      icon: Icon(icon, color: Colors.black),
+      icon: Icon(icon, color: Colors.black, size: 20),
       label: Text(
         label,
         style: GoogleFonts.notoSans(
           color: Colors.black,
           fontWeight: FontWeight.bold,
+          fontSize: 14,
         ),
       ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.activeGreen,
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        backgroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
         ),
+        elevation: 5,
       ),
     );
   }
