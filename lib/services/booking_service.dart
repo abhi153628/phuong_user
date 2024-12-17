@@ -1,65 +1,100 @@
-// services/booking_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:phuong/modal/booking_modal.dart';
 import 'package:phuong/modal/event_modal.dart';
+import 'package:phuong/services/auth_services.dart';
 
-class BookingService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  Future<void> createBooking({
-    required EventModel event,
-    required int selectedSeats,
-    required double totalAmount,
-    required String paymentId,
-  }) async {
+class BookingService { 
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+      final FirebaseAuthServices _auth = FirebaseAuthServices();
+  // Modify the bookEvent method to properly handle seat updates
+  Future<bool> bookEvent(EventModel event, int seatsToBook) async {
     try {
-      final String userId = _auth.currentUser!.uid;
-      final String bookingId = _firestore.collection('bookings').doc().id;
+      final currentUser = _auth.getCurrentUserId();
+      if (currentUser == null) {
+        throw Exception('User not logged in');
+      }
 
-      await _firestore.collection('bookings').doc(bookingId).set({
-        'bookingId': bookingId,
-        'eventId': event.eventId,
-        'userId': userId,
-        'bookedSeats': selectedSeats,
-        'totalAmount': totalAmount,
-        'bookingDate': DateTime.now(),
-        'paymentId': paymentId,
-        'bookingStatus': 'confirmed',
-        'eventDetails': event.toMap(),
+      return await _firestore.runTransaction((transaction) async {
+        // Get real-time event data
+        DocumentReference eventRef = _firestore
+            .collection('eventCollection')
+            .doc(event.eventId);
+        
+        DocumentSnapshot eventSnapshot = await transaction.get(eventRef);
+        
+        // Verify event exists and has available seats
+        if (!eventSnapshot.exists) {
+          throw Exception('Event not found');
+        }
+
+        double currentSeats = eventSnapshot.get('seatAvailabilityCount') ?? 0.0;
+        
+        // Check if enough seats are available
+        if (currentSeats < seatsToBook) {
+          throw Exception('Not enough seats available');
+        }
+
+        // Create booking reference
+        DocumentReference bookingRef = _firestore.collection('userBookings').doc();
+
+        // Create booking model
+        BookingModel booking = BookingModel(
+          bookingId: bookingRef.id,
+          eventId: event.eventId!,
+          userId: currentUser,
+          seatsBooked: seatsToBook,
+          totalPrice: (event.ticketPrice ?? 0.0) * seatsToBook,
+          bookingTime: DateTime.now(),
+          eventName: event.eventName!,
+          organizerId: event.organizerId!,
+        );
+
+        // Update seats atomically
+        transaction.update(eventRef, {
+          'seatAvailabilityCount': FieldValue.increment(-seatsToBook)
+        });
+
+        // Store booking in user bookings
+        transaction.set(bookingRef, booking.toMap());
+
+        // Store booking in event's booking subcollection
+        DocumentReference eventBookingRef = eventRef
+            .collection('bookings')
+            .doc(bookingRef.id);
+        transaction.set(eventBookingRef, booking.toMap());
+
+        return true;
       });
     } catch (e) {
-      print('Error creating booking: $e');
-      rethrow;
+      print('Booking error: $e');
+      return false;
     }
   }
-
-  Future<List<EventModel>> getUserBookings() async {
-    try {
-      final String userId = _auth.currentUser!.uid;
-      final snapshot = await _firestore
-          .collection('bookings')
-          .where('userId', isEqualTo: userId)
-          .orderBy('bookingDate', descending: true)
-          .get();
-
-      return snapshot.docs
-          .map((doc) => EventModel.fromMap(doc.data()['eventDetails']))
-          .toList();
-    } catch (e) {
-      print('Error fetching user bookings: $e');
-      rethrow;
+    // Fetch user's bookings
+  Stream<List<BookingModel>> getUserBookings() {
+ final currentUser = _auth.getCurrentUserId();;
+    if (currentUser == null) {
+      return Stream.value([]);
     }
+
+    return _firestore
+        .collection('userBookings')
+        .where('userId', isEqualTo: currentUser)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => BookingModel.fromMap(doc.data()))
+            .toList());
   }
 
-  Future<void> cancelBooking(String bookingId) async {
-    try {
-      await _firestore.collection('bookings').doc(bookingId).update({
-        'bookingStatus': 'cancelled',
-      });
-    } catch (e) {
-      print('Error cancelling booking: $e');
-      rethrow;
-    }
+  // Fetch bookings for a specific event (for organizer)
+  Stream<List<BookingModel>> getEventBookings(String eventId) {
+    return _firestore
+        .collection('eventCollection')
+        .doc(eventId)
+        .collection('bookings')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => BookingModel.fromMap(doc.data()))
+            .toList());
   }
 }

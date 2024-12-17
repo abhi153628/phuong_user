@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:phuong/main.dart';
 import 'package:phuong/modal/user_profile_modal.dart';
 import 'package:phuong/services/user_profile_firebase_service.dart';
-import 'package:phuong/utils/cstm_transition.dart';
-import 'package:phuong/view/booked_events_page.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -302,7 +301,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     ),
 
-                    GestureDetector(onTap: () => Navigator.of(context).push(GentlePageTransition(page: BookedEventsScreen())),
+                    GestureDetector(
+                      //! booked events page
                       child: ListTile(
                         leading: const Icon(Icons.library_music,
                             color: AppColors.activeGreen),
