@@ -1,43 +1,54 @@
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-//! Post Model
 class Post {
   final String id;
   final String imageUrl;
   final String? description;
   final DateTime timestamp;
-  final int likes;
+  final String organizerId; // Added field
+  final String organizerName; // Added field
+  final String organizerImageUrl; // Added field
+  bool isLiked;
+  bool isSaved;
 
   Post({
     required this.id,
     required this.imageUrl,
     this.description,
     required this.timestamp,
-    this.likes = 0,
+    required this.organizerId,
+    required this.organizerName,
+    required this.organizerImageUrl,
+    this.isLiked = false,
+    this.isSaved = false,
   });
 
-  //! Factory constructor to create a Post from a map
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
       id: json['id'] ?? '',
       imageUrl: json['imageUrl'] ?? '',
       description: json['description'],
-      timestamp: json['timestamp'] != null 
-        ? DateTime.parse(json['timestamp']) 
-        : DateTime.now(),
-      likes: json['likes'] ?? 0,
+      timestamp: (json['timestamp'] is Timestamp)
+          ? (json['timestamp'] as Timestamp).toDate()
+          : json['timestamp'] != null
+              ? DateTime.parse(json['timestamp'])
+              : DateTime.now(),
+      organizerId: json['organizerId'] ?? '',
+      organizerName: json['organizerName'] ?? 'Unknown Organizer',
+      organizerImageUrl: json['organizerImageUrl'] ?? '',
     );
   }
 
-  //! Converting Post to Map
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'imageUrl': imageUrl,
       'description': description,
       'timestamp': timestamp.toIso8601String(),
-      'likes': likes,
+      'organizerId': organizerId,
+      'organizerName': organizerName,
+      'organizerImageUrl': organizerImageUrl,
     };
   }
 }

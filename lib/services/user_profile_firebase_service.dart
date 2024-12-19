@@ -1,7 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+
 import 'package:phuong/modal/user_profile_modal.dart';
+
+// First, add these packages to pubspec.yaml:
+// geolocator: ^10.1.0
+// geocoding: ^2.1.1
+
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+
+
 
 class UserProfileService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -14,11 +24,56 @@ class UserProfileService {
     return user.uid;
   }
 
+  // Add this new method to handle location permissions and fetching
+  Future<Position?> getCurrentLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled');
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permission denied');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permissions permanently denied');
+      }
+
+      return await Geolocator.getCurrentPosition();
+    } catch (e) {
+      debugPrint('Error getting location: $e');
+      return null;
+    }
+  }
+
+  // Add this method to get address from coordinates
+  Future<String?> getAddressFromCoordinates(double lat, double lng) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        return '${place.locality}, ${place.administrativeArea}';
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting address: $e');
+      return null;
+    }
+  }
+
   Future<void> updateUserProfile(UserProfile userProfile) async {
     try {
       await _firestore.collection('userProfiles').doc(userId).set({
-        'userId': userId, // Save the user ID explicitly
+        'userId': userId,
         'name': userProfile.name,
+        'latitude': userProfile.latitude,
+        'longitude': userProfile.longitude,
+        'address': userProfile.address,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
       debugPrint('UserProfile updated successfully!');
@@ -35,7 +90,7 @@ class UserProfileService {
         final data = doc.data()!;
         return UserProfile.fromJson({
           ...data,
-          'userId': userId, // Add the userId when deserializing
+          'userId': userId,
         });
       }
       return null;
@@ -44,4 +99,6 @@ class UserProfileService {
       return null;
     }
   }
+  
+  
 }

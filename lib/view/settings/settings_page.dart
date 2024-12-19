@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:phuong/main.dart';
 import 'package:phuong/modal/user_profile_modal.dart';
@@ -9,6 +9,7 @@ import 'package:phuong/services/user_profile_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/booked_events_page.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
+import 'package:phuong/view/social_feed/liked_post.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -20,9 +21,11 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final UserProfileService _userProfileService = UserProfileService();
   String _userName = 'User';
+  String? _currentAddress = 'Location not set';
   final TextEditingController _nameController = TextEditingController();
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isUpdatingLocation = false;
 
   @override
   void initState() {
@@ -37,10 +40,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
     try {
       final userProfile = await _userProfileService.getUserProfile();
-      if (userProfile != null && userProfile.name.isNotEmpty) {
+      if (userProfile != null) {
         setState(() {
           _userName = userProfile.name;
           _nameController.text = userProfile.name;
+          _currentAddress = userProfile.address ?? 'Location not set';
         });
       } else {
         final user = FirebaseAuth.instance.currentUser;
@@ -61,7 +65,50 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  void _showEditNameBottomSheet() {
+ Future<void> _updateLocation(StateSetter setModalState) async {
+  setModalState(() {
+    _isUpdatingLocation = true;
+  });
+
+  try {
+    final position = await _userProfileService.getCurrentLocation();
+    if (position == null) {
+      _showErrorSnackBar('Unable to get current location');
+      return;
+    }
+
+    final address = await _userProfileService.getAddressFromCoordinates(
+      position.latitude,
+      position.longitude,
+    );
+
+    setModalState(() {
+      _currentAddress = address ?? 'Location not found';
+    });
+
+    // Show success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Location updated successfully'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+  } catch (e) {
+    String errorMessage = 'Error updating location';
+    if (e.toString().contains('disabled')) {
+      errorMessage = 'Please enable location services in your device settings';
+    } else if (e.toString().contains('denied')) {
+      errorMessage = 'Please grant location permission in your device settings';
+    }
+    _showErrorSnackBar(errorMessage);
+  } finally {
+    setModalState(() {
+      _isUpdatingLocation = false;
+    });
+  }
+}
+  void _showEditProfileBottomSheet() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -89,8 +136,8 @@ class _SettingsPageState extends State<SettingsPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Edit Profile Name',
-                  style: GoogleFonts.syneMono(
+                  'Edit Profile',
+                  style: GoogleFonts.syne(
                     color: AppColors.activeGreen,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -109,6 +156,65 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     hintText: 'Enter your name',
                     hintStyle: GoogleFonts.notoSans(color: Colors.grey),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                //! Location Section
+                Container(width: 400,
+                  padding: const EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Current Location',
+                        style: GoogleFonts.notoSans(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Text(
+                          _currentAddress ?? 'Location not set',
+                          style: GoogleFonts.notoSans(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Center(
+                        child: ElevatedButton.icon(
+                          onPressed: _isUpdatingLocation
+                              ? null
+                              : () => _updateLocation(setModalState),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.activeGreen,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: _isUpdatingLocation
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.black,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Icon(Icons.location_on, color: Colors.black),
+                          label: Text(
+                            _isUpdatingLocation ? 'Updating...' : 'Update Location',
+                            style: GoogleFonts.notoSans(color: Colors.black),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -133,7 +239,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ),
                           ElevatedButton(
-                            onPressed: () => _saveUserName(context),
+                            onPressed: () => _saveProfile(context),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.activeGreen,
                               shape: RoundedRectangleBorder(
@@ -154,37 +260,101 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
+Future<void> _saveProfile(BuildContext context) async {
+  final newName = _nameController.text.trim();
+  if (newName.isEmpty) {
+    _showErrorSnackBar('Name cannot be empty');
+    return;
+  }
 
-  Future<void> _saveUserName(BuildContext context) async {
-    final newName = _nameController.text.trim();
-    if (newName.isEmpty) {
-      _showErrorSnackBar('Name cannot be empty');
-      return;
-    }
+  // Show loading dialog with circular progress indicator
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.activeGreen.withOpacity(0.3),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  color: AppColors.activeGreen,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Updating Profile...',
+                  style: GoogleFonts.notoSans(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
 
+  try {
+    // Get current location data if available
+    final position = await _userProfileService.getCurrentLocation();
+    final address = position != null
+        ? await _userProfileService.getAddressFromCoordinates(
+            position.latitude,
+            position.longitude,
+          )
+        : null;
+
+    final userId = _userProfileService.userId; // Get the actual user ID
+
+    await _userProfileService.updateUserProfile(
+      UserProfile(
+        name: newName,
+        userId: userId,
+        latitude: position?.latitude,
+        longitude: position?.longitude,
+        address: address ?? _currentAddress,
+      ),
+    );
+
+    // Update UI
     setState(() {
-      _isSaving = true;
+      _userName = newName;
+      if (address != null) _currentAddress = address;
     });
 
-    try {
-      await _userProfileService.updateUserProfile(
-        UserProfile(name: newName, userId: ''),
-      );
+    // Close loading dialog
+    Navigator.pop(context); // Close loading dialog
+    Navigator.pop(context); // Close bottom sheet
 
-      // Immediately update the UI
-      setState(() {
-        _userName = newName;
-      });
-
-      Navigator.pop(context);
-    } catch (e) {
-      _showErrorSnackBar('Failed to update name: $e');
-    } finally {
-      setState(() {
-        _isSaving = false;
-      });
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Profile updated successfully'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  } catch (e) {
+    // Close loading dialog on error
+    Navigator.pop(context);
+    _showErrorSnackBar('Failed to update profile: $e');
   }
+}
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -247,10 +417,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                               //! User Name
+                                //! User Name
                                 AnimatedTextKit(
-                                  key: ValueKey(
-                                      _userName), 
+                                  key: ValueKey(_userName),
                                   animatedTexts: [
                                     TypewriterAnimatedText(
                                       _userName,
@@ -266,8 +435,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                   repeatForever: false,
                                   isRepeatingAnimation: false,
                                 ),
+                                //User location
                                 Text(
-                                  'Band Booking Member',
+                                  _currentAddress ?? 'Location not set',
                                   style: GoogleFonts.notoSans(
                                     color: Colors.grey,
                                     fontSize: 14,
@@ -277,7 +447,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ),
                           IconButton(
-                            onPressed: _showEditNameBottomSheet,
+                            onPressed: _showEditProfileBottomSheet,
                             icon: const Icon(
                               Icons.edit,
                               color: AppColors.activeGreen,
@@ -304,29 +474,42 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
 
                     GestureDetector(
-                      onTap: ()=>Navigator.of(context).push(GentlePageTransition(page: UserBookingsPage())),
+                      onTap: () => Navigator.of(context)
+                          .push(GentlePageTransition(page: UserBookingsPage())),
                       //! booked events page
                       child: ListTile(
-                        leading: const Icon(Icons.library_music,
+                          leading: const Icon(Icons.library_music,
+                              color: AppColors.activeGreen),
+                          title: Text(
+                            'Booked Events',
+                            style: GoogleFonts.notoSans(color: Colors.white),
+                          ),
+                          trailing: Icon(Icons.arrow_forward_ios_outlined,
+                              color: AppColors.activeGreen)),
+                    ),
+                    ListTile(
+                        leading: const Icon(Icons.local_activity_outlined,
                             color: AppColors.activeGreen),
                         title: Text(
-                          'Booked Events',
+                          'Tickets',
                           style: GoogleFonts.notoSans(color: Colors.white),
                         ),
-                        trailing: Icon(Icons.arrow_forward_ios_outlined,color: AppColors.activeGreen
-                        )
-                      ),
-                    ),
-                      ListTile(
-                      leading: const Icon(Icons.local_activity_outlined,
-                          color: AppColors.activeGreen),
-                      title: Text(
-                        'Tickets',
-                        style: GoogleFonts.notoSans(color: Colors.white),
-                      ),
-                      trailing: Icon(Icons.arrow_forward_ios_outlined,color: AppColors.activeGreen
-                      )
-                    ),
+                        trailing: Icon(Icons.arrow_forward_ios_outlined,
+                            color: AppColors.activeGreen)),
+                            //
+                            GestureDetector(
+                                onTap: () => Navigator.of(context)
+                          .push(GentlePageTransition(page: LikedPostsPage())),
+                              child: ListTile(
+                                                      leading: const Icon(Icons.local_activity_outlined,
+                              color: AppColors.activeGreen),
+                                                      title: Text(
+                                                        'Liked ',
+                                                        style: GoogleFonts.notoSans(color: Colors.white),
+                                                      ),
+                                                      trailing: Icon(Icons.arrow_forward_ios_outlined,
+                              color: AppColors.activeGreen)),
+                            ),
 
                     const Spacer(),
 

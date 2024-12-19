@@ -5,6 +5,8 @@ class BookingModel {
   
   final String eventId;
   final String userId;
+  final String userName;
+   
   final int seatsBooked;
   final double totalPrice;
   final DateTime bookingTime;
@@ -15,6 +17,8 @@ class BookingModel {
     this.bookingId,
     required this.eventId,
     required this.userId,
+    required this.userName,
+    
     required this.seatsBooked,
     required this.totalPrice,
     required this.bookingTime,
@@ -28,6 +32,8 @@ class BookingModel {
       'bookingId': bookingId,
       'eventId': eventId,
       'userId': userId,
+      'userName': userName,
+    
       'seatsBooked': seatsBooked,
       'totalPrice': totalPrice,
       'bookingTime': bookingTime,
@@ -42,6 +48,8 @@ class BookingModel {
       bookingId: map['bookingId'],
       eventId: map['eventId'],
       userId: map['userId'],
+      userName: map['userName'] ?? 'Unknown User',
+   
       seatsBooked: map['seatsBooked'],
       totalPrice: map['totalPrice'],
       bookingTime: (map['bookingTime'] as Timestamp).toDate(),

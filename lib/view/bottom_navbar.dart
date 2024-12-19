@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:phuong/modal/event_modal.dart';
+import 'package:phuong/modal/organizer_profile_modal.dart';
+import 'package:phuong/services/organizer_profile_firebase_service.dart';
 import 'package:phuong/view/chat_section/chat_listing_screen.dart';
-import 'package:phuong/view/chat_section/chat_view_screen.dart';
-import 'package:phuong/view/event_detail_screen/widgets/fields_event_details_widget.dart';
-
 import 'package:phuong/view/homepage/homepage.dart';
-import 'package:phuong/view/homepage/text_styles.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
-import 'package:phuong/view/onboarding_page/onboarding_page.dart';
 import 'package:phuong/view/settings/settings_page.dart';
-import 'package:phuong/view/welcomepage/welcomes_screen.dart';
-
+import 'package:phuong/view/social_feed/widgets/main_post_screen.dart';
 
 class BottomNavbar extends StatefulWidget {
   const BottomNavbar({super.key});
@@ -21,18 +16,17 @@ class BottomNavbar extends StatefulWidget {
   State<BottomNavbar> createState() => _BottomNavbarState();
 }
 
-// var to track current index or (page)
-var currentIndex = 0;
-
 class _BottomNavbarState extends State<BottomNavbar> {
-  static  List<Widget> screens = [
-    DiscoverScreen(),
-    UserChatScreen(organizerId: '',),
-    UserChatListScreen(),
-    SettingsPage()
-   
-  ];
+  // Move currentIndex inside the State class
+  int currentIndex = 0;
+  
+  final UserOrganizerProfileService _organizerService = UserOrganizerProfileService();
+  late Stream<List<Post>> _allPostsStream;
+  
+  // Move screens to a late initialized list
+  late final List<Widget> screens;
 
+  // Constants can remain static
   static const List<String> listOfStrings = [
     'Home',
     'Favorite',
@@ -46,6 +40,19 @@ class _BottomNavbarState extends State<BottomNavbar> {
     Icons.shopping_cart_rounded,
     Icons.manage_accounts_sharp
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the stream
+    _allPostsStream = _organizerService.fetchAllPosts();
+    screens = [
+      const DiscoverScreen(),
+      FeedPage(postsStream: _allPostsStream, ),
+      UserChatListScreen(),
+      const SettingsPage()
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

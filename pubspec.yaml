@@ -55,6 +55,11 @@ dependencies:
   flutter_animate: ^4.5.2
   google_sign_in: ^6.2.2
   animations: ^2.0.11
+  geolocator: ^13.0.2
+  geocoding: ^3.0.0
+  timeago: ^3.2.2
+  custom_like_button: ^0.0.5
+  like_button: ^2.0.5
   
  
 

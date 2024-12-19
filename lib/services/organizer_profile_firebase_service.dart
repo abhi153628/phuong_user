@@ -81,36 +81,52 @@ class UserOrganizerProfileService {
       return [];
     }
   }
+
+   Stream<List<Post>> fetchAllPosts() {
+  try {
+    return _firestore
+        .collection('organizers')
+        .snapshots()
+        .map((snapshot) {
+      List<Post> allPosts = [];
+
+      for (var doc in snapshot.docs) {
+        final organizerData = doc.data();
+        final posts = organizerData['posts'] as List<dynamic>? ?? [];
+
+        for (var postData in posts) {
+          try {
+            final post = Post.fromJson({
+              ...Map<String, dynamic>.from(postData),
+              'id': postData['id'],
+              'organizerId': doc.id,
+              'organizerName': organizerData['name'] ?? 'Unknown Organizer',
+              'organizerImageUrl': organizerData['imageUrl'] ?? '',
+            });
+            allPosts.add(post);
+          } catch (e) {
+            log('Error converting post in organizer ${doc.id}: $e');
+            continue;
+          }
+        }
+      }
+
+      // Sort all posts by timestamp
+      allPosts.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return allPosts;
+    });
+  } catch (e) {
+    log('Error in fetchAllPosts: $e');
+    return Stream.value([]);
+  }
+}
 }
 
   
-  // //! I N S T A G R A M   F E E D
-  //  Future<List<Post>> fetchAllPosts(String organizerId) async {
-  //   try {
-  //     log('Fetching posts for organizer: $organizerId');
 
-  //     final QuerySnapshot snapshot = await _firestore
-  //         .collection('posts')
-         
-  //         .orderBy('timestamp', descending: true)
-  //         .get();
 
-  //     log('Found ${snapshot.docs.length} posts');
-      
-  //     return snapshot.docs.map((doc) {
-  //       final data = doc.data() as Map<String, dynamic>;
-  //       return Post(
+  // Stream to fetch all posts from all organizers
+ 
 
-  //         id: doc.id,
-  //         userId: data['userId'] ?? '',
-          
-  //         imageUrl: data['imageUrl'] ?? '',
-  //         description: data['description'] ?? '',
-  //         createdAt: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(), timestamp: ,
-  //       );
-  //     }).toList();
-  //   } catch (error) {
-  //     log('Error fetching posts: $error');
-  //     return [];
-  //   }
+
   

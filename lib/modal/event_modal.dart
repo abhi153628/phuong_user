@@ -25,13 +25,7 @@ class EventModel {
   final Timestamp? createdAt;
   final Timestamp? updatedAt;
    final bool isFree;
-  //  final String? bookingId;
-  // final String? userId;
-  // final int? bookedSeats;
-  // final double? totalAmount;
-  // final DateTime? bookingDate;
-  // final String? paymentId;
-  // final String? bookingStatus;
+
 
   EventModel({
     this.eventId,
@@ -56,13 +50,7 @@ class EventModel {
     this.createdAt,
     this.updatedAt,
       required this.isFree,
-    //       this.bookingId,
-    // this.userId,
-    // this.bookedSeats,
-    // this.totalAmount,
-    // this.bookingDate,
-    // this.paymentId,
-    // this.bookingStatus,
+  
   });
 
   factory EventModel.fromMap(Map<String, dynamic> map) {

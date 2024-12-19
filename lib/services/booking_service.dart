@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:phuong/modal/booking_modal.dart';
 import 'package:phuong/modal/event_modal.dart';
+import 'package:phuong/modal/user_profile_modal.dart';
 import 'package:phuong/services/auth_services.dart';
+import 'package:phuong/services/user_profile_firebase_service.dart';
 
 class BookingService { 
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
       final FirebaseAuthServices _auth = FirebaseAuthServices();
+      final UserProfileService _userProfileService =UserProfileService();
   // Modify the bookEvent method to properly handle seat updates
   Future<bool> bookEvent(EventModel event, int seatsToBook) async {
     try {
@@ -13,6 +16,8 @@ class BookingService {
       if (currentUser == null) {
         throw Exception('User not logged in');
       }
+       final userProfile = await _userProfileService.getUserProfile();
+      final userName = userProfile?.name ?? 'Unknown User';
 
       return await _firestore.runTransaction((transaction) async {
         // Get real-time event data
@@ -46,7 +51,7 @@ class BookingService {
           totalPrice: (event.ticketPrice ?? 0.0) * seatsToBook,
           bookingTime: DateTime.now(),
           eventName: event.eventName!,
-          organizerId: event.organizerId!,
+          organizerId: event.organizerId!, userName: userName,
         );
 
         // Update seats atomically

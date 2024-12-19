@@ -1,8 +1,11 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/event_modal.dart';
+import 'package:phuong/modal/user_profile_modal.dart';
 import 'package:phuong/services/event_fetching_firebase_service.dart';
+import 'package:phuong/services/user_profile_firebase_service.dart';
 
 import 'package:phuong/view/homepage/search_bar.dart';
 import 'package:phuong/view/homepage/widgets/category_button.dart';
@@ -20,9 +23,18 @@ class DiscoverScreen extends StatefulWidget {
   _DiscoverScreenState createState() => _DiscoverScreenState();
 }
 
-class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProviderStateMixin {
+class _DiscoverScreenState extends State<DiscoverScreen>
+    with SingleTickerProviderStateMixin {
+  final UserProfileService _userProfileService = UserProfileService();
+  String? _userCurrentLocation;
   int _selectedCategory = 0;
-  final List<String> categories = ['My feed', 'Rock', 'Classical', 'Pop', 'Jazz'];
+  final List<String> categories = [
+    'My feed',
+    'Rock',
+    'Classical',
+    'Pop',
+    'Jazz'
+  ];
   final ScrollController _scrollController = ScrollController();
   bool _isSearchBarSticky = false;
   late AnimationController _animationController;
@@ -46,9 +58,49 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
       parent: _animationController,
       curve: Curves.easeInOutCubic,
     );
+    _initializeLocationAndEvents();
 
     // Fetch events when screen initializes
     _fetchEvents();
+  }
+
+  Future<void> _initializeLocationAndEvents() async {
+    await _getUserLocation();
+    await _fetchEvents();
+  }
+
+  Future<void> _getUserLocation() async {
+    try {
+      final position = await _userProfileService.getCurrentLocation();
+      if (position != null) {
+        // Get the address (city/area) from coordinates
+        final address = await _userProfileService.getAddressFromCoordinates(
+          position.latitude,
+          position.longitude,
+        );
+
+        if (address != null) {
+          setState(() {
+            _userCurrentLocation = address;
+          });
+
+          // Update user's location in Firestore
+          final userProfile = UserProfile(
+            userId: _userProfileService.userId,
+            latitude: position.latitude,
+            longitude: position.longitude,
+            address: address, name: '',
+            // ... other required fields
+          );
+
+          await _userProfileService.updateUserProfile(userProfile);
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error getting location: $e')),
+      );
+    }
   }
 
   Future<void> _fetchEvents() async {
@@ -59,7 +111,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
 
       // Fetch all events
       _allEvents = await _eventService.getEvents();
-      
+
       // Initially show all events or apply default filter
       _filterEvents();
 
@@ -76,30 +128,111 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
     }
   }
 
+ Widget _buildSectionTitle() {
+  // This is the single source of truth for the title
+  String title = _selectedCategory == 0
+      ? 'Nearby Events'
+      : '${categories[_selectedCategory]} Events';
+
+  return AnimatedTextKit(
+    key: ValueKey(title),
+    animatedTexts: [
+      TypewriterAnimatedText(
+        title,  // Using the title here
+        textStyle: GoogleFonts.syne(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: const Color.fromARGB(255, 210, 226, 174),
+        ),
+        speed: const Duration(milliseconds: 50),
+      ),
+    ],
+    totalRepeatCount: 1,
+    displayFullTextOnTap: true,
+    stopPauseOnTap: true,
+
+  );
+}
+
   void _filterEvents() {
     setState(() {
       // Filter logic based on selected category
       switch (_selectedCategory) {
-        case 0: 
-          _filteredEvents = _allEvents;
+        case 0:
+          if (_userCurrentLocation != null) {
+            // Split user location into individual words
+            List<String> userLocationWords = _userCurrentLocation!
+                .toLowerCase()
+                .replaceAll(',', ' ')
+                .split(' ')
+                .where((word) => word.isNotEmpty)
+                .toList();
+
+            _filteredEvents = _allEvents.where((event) {
+              if (event.location == null) return false;
+
+              // Split event location into words
+              List<String> eventLocationWords = event.location!
+                  .toLowerCase()
+                  .replaceAll(',', ' ')
+                  .split(' ')
+                  .where((word) => word.isNotEmpty)
+                  .toList();
+
+              // Check if any word from user location matches any word from event location
+              return userLocationWords.any((userWord) => eventLocationWords.any(
+                  (eventWord) =>
+                      eventWord.contains(userWord) ||
+                      userWord.contains(eventWord)));
+            }).toList();
+
+            // If no events found
+            if (_filteredEvents.isEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('No events found in your area'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              });
+            }
+          } else {
+            _filteredEvents = [];
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                      'Please enable location services to see nearby events'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            });
+          }
           break;
-        case 1: 
-          _filteredEvents = _allEvents.where((event) => event.genreType == 'Rock').toList();
+        case 1:
+         _filteredEvents = _allEvents.where((event) => 
+            event.genreType!.toLowerCase() == 'rock').toList();
+
           break;
-        case 2: 
-          _filteredEvents = _allEvents.where((event) => event.genreType == 'Classical').toList();
+        case 2:
+            _filteredEvents = _allEvents.where((event) => 
+            event.genreType!.toLowerCase() == 'classical').toList();
           break;
-        case 3: 
-          _filteredEvents = _allEvents.where((event) => event.genreType == 'Pop').toList();
+        case 3:
+          _filteredEvents = _allEvents.where((event) => 
+            event.genreType!.toLowerCase() == 'pop').toList();
           break;
-        case 4: 
-          _filteredEvents = _allEvents.where((event) => event.genreType == 'Jazz').toList();
+        case 4:
+           _filteredEvents = _allEvents.where((event) => 
+            event.genreType!.toLowerCase() == 'jazz').toList();
           break;
         default:
           _filteredEvents = _allEvents;
       }
     });
   }
+  
 
   @override
   void dispose() {
@@ -117,6 +250,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
       _animationController.reverse();
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -150,8 +284,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                           const SizedBox(height: 15),
                           _buildCategories(),
                           const SizedBox(height: 15),
-                          if (!_isSearchBarSticky) 
-                            const SearchBarHomeScreen(),
+                          if (!_isSearchBarSticky) const SearchBarHomeScreen(),
                         ],
                       ),
                     ),
@@ -187,14 +320,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Nearby Events',
-                        style: GoogleFonts.syne(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: const Color.fromARGB(255, 210, 226, 174),
-                        ),
-                      ),
+                      _buildSectionTitle(),
                       const SizedBox(height: 20),
 
                       // Loading or No Events Handling
@@ -203,7 +329,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                           : _filteredEvents.isEmpty
                               ? Center(
                                   child: Text(
-                                    'No events found in this category',
+                                    _selectedCategory == 0
+                                        ? 'No nearby events found'
+                                        : 'No ${categories[_selectedCategory].toLowerCase()} events found',
                                     style: GoogleFonts.syne(
                                       color: Colors.white,
                                       fontSize: 16,
@@ -232,9 +360,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
             animation: _searchBarAnimation,
             builder: (context, child) {
               return Transform.translate(
-                offset: Offset(0, _isSearchBarSticky 
-                  ? 0 
-                  : -100 * (1 - _searchBarAnimation.value)),
+                offset: Offset(
+                    0,
+                    _isSearchBarSticky
+                        ? 0
+                        : -100 * (1 - _searchBarAnimation.value)),
                 child: Container(
                   color: Colors.transparent,
                   child: SafeArea(
@@ -257,7 +387,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
   }
 
   // Other existing methods remain the same (_buildHeader(), _buildCategories())
-   Widget _buildHeader() {
+  Widget _buildHeader() {
     return Padding(
       padding: EdgeInsets.all(15),
       child: Row(
@@ -300,7 +430,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
       ),
     );
   }
-  
+
   Widget _buildCategories() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
