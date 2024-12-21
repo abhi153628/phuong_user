@@ -4,6 +4,7 @@ class UserProfile {
   final double? latitude;
   final double? longitude;
   final String? address;
+  final String? phoneNumber; // Changed to String type for phone numbers
 
   const UserProfile({
     required this.userId,
@@ -11,6 +12,7 @@ class UserProfile {
     this.latitude,
     this.longitude,
     this.address,
+    this.phoneNumber,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class UserProfile {
       latitude: json['latitude']?.toDouble(),
       longitude: json['longitude']?.toDouble(),
       address: json['address'],
+      phoneNumber: json['phoneNumber'],
     );
   }
 
@@ -30,6 +33,7 @@ class UserProfile {
       'latitude': latitude,
       'longitude': longitude,
       'address': address,
+      'phoneNumber': phoneNumber,
     };
   }
 }

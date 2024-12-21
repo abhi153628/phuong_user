@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/booking_modal.dart';
 import 'package:phuong/modal/event_modal.dart';
+import 'package:phuong/services/event_fetching_firebase_service.dart';
+import 'package:phuong/services/user_profile_firebase_service.dart';
 import 'package:phuong/view/event_detail_screen/widgets/event_terms_condition_widget.dart';
 import 'package:phuong/view/event_detail_screen/widgets/ph_no_authentication_botom_sheet.dart';
 import 'package:phuong/view/event_detail_screen/widgets/seat_availibility_bottom_sheet.dart';
@@ -13,16 +15,29 @@ import 'package:phuong/view/event_organizer_view_page/event_organizer_view_page.
 import 'package:phuong/view/homepage/widgets/colors.dart';
 
 class EventDetailsPage extends StatelessWidget {
+  final UserProfileService _userProfileService = UserProfileService();
   final EventModel event;
-  const EventDetailsPage({
+   EventDetailsPage({
     Key? key,
     required this.event, 
   }) : super(key: key);
+  bool isEventBookable(DateTime? eventDate) {
+  if (eventDate == null) return false;
+  
+  final now = DateTime.now();
+  final bookingCloseDate = eventDate.subtract(const Duration(days: 1));
+  
+  return now.isBefore(bookingCloseDate);
+}
+
+
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+     final isBookable = isEventBookable(event.date);
+     
 
     return Scaffold(
       backgroundColor: scaffoldColor,
@@ -35,8 +50,7 @@ class EventDetailsPage extends StatelessWidget {
               padding: EdgeInsets.symmetric(
                 horizontal: screenWidth * 0.03,
                 vertical: screenHeight * 0.01,
-              ).copyWith(
-                  bottom: 100), // Add extra bottom padding for the bottom bar
+              ).copyWith(bottom: isBookable ? 100 : 20), // Add extra bottom padding for the bottom bar
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -81,6 +95,11 @@ class EventDetailsPage extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 10),
+                    Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            right: 16,
+            child: _buildSaveButton(context),
+          ),
 
                   EventTermsAndConditions(
                     eventRules: event.eventRules ?? [],
@@ -91,7 +110,8 @@ class EventDetailsPage extends StatelessWidget {
             ),
           ),
 
-          // Permanent Bottom Bar positioned at the bottom
+            // Only show bottom bar if event is bookable
+            if (isBookable)
           Positioned(
             left: 0,
             right: 0,
@@ -102,6 +122,46 @@ class EventDetailsPage extends StatelessWidget {
       ),
     );
   }
+    Widget _buildSaveButton(BuildContext context) {
+    return StreamBuilder<bool>(
+      stream: Stream.fromFuture(
+        EventService().isEventSaved(_userProfileService.userId, event.eventId!)
+      ),
+      builder: (context, snapshot) {
+        final isSaved = snapshot.data ?? false;
+        
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: IconButton(
+            icon: Icon(
+              isSaved ? Icons.bookmark : Icons.bookmark_border,
+              color: isSaved ? AppColors.activeGreen : Colors.white,
+            ),
+            onPressed: () async {
+              try {
+                if (isSaved) {
+                  await EventService().unsaveEvent(_userProfileService.userId, event.eventId!);
+                } else {
+                  await EventService().saveEvent(_userProfileService.userId, event.eventId!);
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+          ),
+        );
+    });
+    }
+
+
 
   Widget _buildBottomBar(BuildContext context) {
     return Container(
@@ -129,8 +189,8 @@ class EventDetailsPage extends StatelessWidget {
         onPressed: () {
           // TODO: Navigation to payment page
           HapticFeedback.lightImpact();
-          // Add subtle haptic feedback
-          _showBookingBottomSheet(context, event);
+   _showBookingBottomSheet(context,event);
+         
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
@@ -172,26 +232,7 @@ class EventDetailsPage extends StatelessWidget {
     );
   }
 
-  void _showPhoneAuthBottomSheet(BuildContext context, EventModel event) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => SingleChildScrollView(
-        child: Container(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: PhoneAuthBottomSheet(),
-        ),
-      ),
-    ).then((verified) {
-      if (verified == true) {
-        // User is verified, proceed to seat booking
-        // You can add your seat booking logic here
-      }
-    });
-  }
+
 }
 
 class MainContentWidget extends StatelessWidget {
@@ -258,51 +299,100 @@ class MainContentWidget extends StatelessWidget {
       ),
     );
   }
+  String getBookingStatus(DateTime? eventDate) {
+  if (eventDate == null) return 'Date TBA';
+  
+  final now = DateTime.now();
+  final bookingCloseDate = eventDate.subtract(const Duration(days: 1));
+  
+  if (now.isAfter(eventDate)) {
+    return 'Event Completed';
+  } else if (now.isAfter(bookingCloseDate)) {
+    return 'Bookings Closed';
+  } else {
+    return 'Bookings Open Until';
+  }
+}
+bool isEventBookable(DateTime? eventDate) {
+  if (eventDate == null) return false;
+  
+  final now = DateTime.now();
+  final bookingCloseDate = eventDate.subtract(const Duration(days: 1));
+  
+  return now.isBefore(bookingCloseDate);
+}
 
-  Widget _buildBookingStatusBar(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.only(top: 320),
-        child: Container(
-          width: screenWidth * 0.9,
-          padding: EdgeInsets.all(screenWidth * 0.04),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.8),
-            borderRadius: BorderRadius.circular(40),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.circle,
-                      color: AppColors.activeGreen, size: screenWidth * 0.04),
-                  SizedBox(width: screenWidth * 0.02),
-                  Text(
-                    'Bookings Open Until',
-                    style: GoogleFonts.notoSans(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: white),
-                  )
-                ],
-              ),
-              Text(
-                event.date != null
-                    ? '${event.date!.day} ${_getMonthName(event.date!.month)}, '
-                        '${event.date!.year}  '
-                        '${event.time?.format(context) ?? "TBA"}'
-                    : 'Date TBA',
-                style: TextStyle(
+ Widget _buildBookingStatusBar(BuildContext context) {
+  final bookingStatus = getBookingStatus(event.date);
+  final isBookable = isEventBookable(event.date);
+  
+  return Center(
+    child: Padding(
+      padding: EdgeInsets.only(top: 320),
+      child: Container(
+        width: screenWidth * 0.9,
+        padding: EdgeInsets.all(screenWidth * 0.04),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(40),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.circle,
+                  color: isBookable ? AppColors.activeGreen : Colors.red,
+                  size: screenWidth * 0.04
+                ),
+                SizedBox(width: screenWidth * 0.02),
+                Text(
+                  bookingStatus,
+                  style: GoogleFonts.notoSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: white
+                  ),
+                )
+              ],
+            ),
+            if (event.date != null) ...[
+              if (bookingStatus == 'Bookings Open Until')
+                Text(
+                  '${event.date!.subtract(const Duration(days: 1)).day} '
+                  '${_getMonthName(event.date!.subtract(const Duration(days: 1)).month)}, '
+                  '${event.date!.year}  '
+                  '${event.time?.format(context) ?? "TBA"}',
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: white.withOpacity(0.9)),
+                    color: white.withOpacity(0.9)
+                  ),
+                )
+              else
+                Text(
+                  bookingStatus,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.red.withOpacity(0.9)
+                  ),
+                ),
+            ] else
+              Text(
+                'Date TBA',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: white.withOpacity(0.9)
+                ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildDateOverlay() {
@@ -333,6 +423,7 @@ class MainContentWidget extends StatelessWidget {
     );
   }
 }
+
 
 class EventNameWidget extends StatelessWidget {
   final double screenWidth;
@@ -375,8 +466,8 @@ class EventNameWidget extends StatelessWidget {
             child: Text(
               event.eventName ?? 'Untitled Event',
               style: GoogleFonts.syne(
-                  fontSize: screenWidth * 0.05,
-                  color: Colors.white,
+                  fontSize: screenWidth * 0.06,
+                  color: AppColors.activeGreen,
                   height: 1.2,
                   fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
@@ -406,9 +497,9 @@ class EventNameWidget extends StatelessWidget {
                 Text(
                   event.location ?? 'Location TBA',
                   style: GoogleFonts.notoSans(
-                    fontSize: screenWidth * 0.04,
+                    fontSize: screenWidth * 0.03,
                     color: Colors.white,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 3,
@@ -463,10 +554,11 @@ class EventNameWidget extends StatelessWidget {
                     child: Text(
                       event.organizerName ?? 'Unknown Organizer',
                       style: TextStyle(
-                        color: Colors.blue,
+                        color: AppColors.activeGreen,
                         fontWeight: FontWeight.bold,
                         decoration: TextDecoration.underline,
                       ),
+                      
                     ),
                   ),
                 ],

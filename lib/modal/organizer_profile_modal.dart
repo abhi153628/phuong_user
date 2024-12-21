@@ -1,4 +1,4 @@
-import 'dart:developer';
+// post_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Post {
@@ -6,11 +6,10 @@ class Post {
   final String imageUrl;
   final String? description;
   final DateTime timestamp;
-  final String organizerId; // Added field
-  final String organizerName; // Added field
-  final String organizerImageUrl; // Added field
-  bool isLiked;
-  bool isSaved;
+  final String organizerId;
+  final String organizerName;
+  final String organizerImageUrl;
+  final bool isLiked; // Added field
 
   Post({
     required this.id,
@@ -20,8 +19,7 @@ class Post {
     required this.organizerId,
     required this.organizerName,
     required this.organizerImageUrl,
-    this.isLiked = false,
-    this.isSaved = false,
+    this.isLiked = false, // Default value
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -37,6 +35,7 @@ class Post {
       organizerId: json['organizerId'] ?? '',
       organizerName: json['organizerName'] ?? 'Unknown Organizer',
       organizerImageUrl: json['organizerImageUrl'] ?? '',
+      isLiked: json['isLiked'] ?? false,
     );
   }
 
@@ -49,10 +48,33 @@ class Post {
       'organizerId': organizerId,
       'organizerName': organizerName,
       'organizerImageUrl': organizerImageUrl,
+      'isLiked': isLiked,
     };
   }
-}
 
+  // Create a copy of the post with modified properties
+  Post copyWith({
+    String? id,
+    String? imageUrl,
+    String? description,
+    DateTime? timestamp,
+    String? organizerId,
+    String? organizerName,
+    String? organizerImageUrl,
+    bool? isLiked,
+  }) {
+    return Post(
+      id: id ?? this.id,
+      imageUrl: imageUrl ?? this.imageUrl,
+      description: description ?? this.description,
+      timestamp: timestamp ?? this.timestamp,
+      organizerId: organizerId ?? this.organizerId,
+      organizerName: organizerName ?? this.organizerName,
+      organizerImageUrl: organizerImageUrl ?? this.organizerImageUrl,
+      isLiked: isLiked ?? this.isLiked,
+    );
+  }
+}
 //! Organizer Profile Model
 class OrganizerProfile {
   final String id;

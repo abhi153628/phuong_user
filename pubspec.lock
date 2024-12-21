@@ -169,14 +169,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
-  custom_like_button:
-    dependency: "direct main"
-    description:
-      name: custom_like_button
-      sha256: "14966852faab26e3054d50d0ee372aaa864c889f2f79257a06f33177eab43566"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.5"
   eventify:
     dependency: transitive
     description:

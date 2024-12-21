@@ -50,7 +50,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
       const DiscoverScreen(),
       FeedPage(postsStream: _allPostsStream, ),
       UserChatListScreen(),
-      const SettingsPage()
+    SettingsPage()
     ];
   }
 

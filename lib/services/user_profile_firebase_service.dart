@@ -66,7 +66,7 @@ class UserProfileService {
     }
   }
 
-  Future<void> updateUserProfile(UserProfile userProfile) async {
+   Future<void> updateUserProfile(UserProfile userProfile) async {
     try {
       await _firestore.collection('userProfiles').doc(userId).set({
         'userId': userId,
@@ -74,12 +74,25 @@ class UserProfileService {
         'latitude': userProfile.latitude,
         'longitude': userProfile.longitude,
         'address': userProfile.address,
+        'phoneNumber': userProfile.phoneNumber, // Add this line to save phone number
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-      debugPrint('UserProfile updated successfully!');
+      debugPrint('UserProfile updated successfully with phone number!');
     } catch (e) {
       debugPrint('Error updating UserProfile: $e');
       throw Exception('Failed to update user profile');
+    }
+  }
+    Future<void> updatePhoneNumber(String phoneNumber) async {
+    try {
+      await _firestore.collection('userProfiles').doc(userId).set({
+        'phoneNumber': phoneNumber,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      debugPrint('Phone number updated successfully!');
+    } catch (e) {
+      debugPrint('Error updating phone number: $e');
+      throw Exception('Failed to update phone number');
     }
   }
 
@@ -99,6 +112,6 @@ class UserProfileService {
       return null;
     }
   }
-  
-  
 }
+  
+  

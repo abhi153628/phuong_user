@@ -84,7 +84,77 @@ class EventService {
       return null;
     });
   }
-  
+  Future<void> saveEvent(String userId, String eventId) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('savedEvents')
+          .doc(eventId)
+          .set({
+        'savedAt': FieldValue.serverTimestamp(),
+        'eventId': eventId,
+      });
+    } catch (e) {
+      print('Error saving event: $e');
+      rethrow;
+    }
+  }
+
+  // Unsave event for a user
+  Future<void> unsaveEvent(String userId, String eventId) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('savedEvents')
+          .doc(eventId)
+          .delete();
+    } catch (e) {
+      print('Error removing saved event: $e');
+      rethrow;
+    }
+  }
+
+  // Check if event is saved by user
+  Future<bool> isEventSaved(String userId, String eventId) async {
+    try {
+      final doc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('savedEvents')
+          .doc(eventId)
+          .get();
+      return doc.exists;
+    } catch (e) {
+      print('Error checking saved event: $e');
+      return false;
+    }
+  }
+    Stream<List<EventModel>> getSavedEvents(String userId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('savedEvents')
+        .orderBy('savedAt', descending: true)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      List<EventModel> savedEvents = [];
+      for (var doc in snapshot.docs) {
+        final eventId = doc.data()['eventId'] as String;
+        final eventDoc = await _firestore
+            .collection('eventCollection')
+            .doc(eventId)
+            .get();
+        if (eventDoc.exists) {
+          savedEvents.add(EventModel.fromMap(eventDoc.data()!));
+        }
+      }
+      return savedEvents;
+    });
+  }
 }
+  
+
 
 

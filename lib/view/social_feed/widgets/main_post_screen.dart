@@ -6,10 +6,11 @@ import 'package:phuong/modal/organizer_profile_modal.dart';
 import 'package:phuong/services/likes_services.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/event_organizer_view_page/event_organizer_view_page.dart';
+import 'package:phuong/view/social_feed/liked_post.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import 'package:flutter/services.dart' show HapticFeedback;
+import 'package:timeago/timeago.dart' as timeago;
 
 class FeedPage extends StatefulWidget {
   final bool showLikedPostsOnly;
@@ -36,15 +37,18 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   void _initializeStream() {
-    if (widget.showLikedPostsOnly) {
-      _finalPostsStream = _likesService.getLikedPosts();
-    } else {
-      _finalPostsStream = widget.postsStream;
-    }
+    _finalPostsStream = widget.showLikedPostsOnly 
+      ? _likesService.getLikedPosts()
+      : widget.postsStream;
   }
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    final padding = mediaQuery.padding;
+    
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -53,112 +57,109 @@ class _FeedPageState extends State<FeedPage> {
           widget.showLikedPostsOnly ? 'Liked Posts' : 'Band Feed',
           style: GoogleFonts.syne(
             color: const Color(0xFFAFEB2B),
-            fontSize: 24,
+            fontSize: screenWidth * 0.06, // Responsive font size
             fontWeight: FontWeight.bold,
           ),
         ),
         elevation: 0,
       ),
-      body: StreamBuilder<List<Post>>(
-        stream: _finalPostsStream,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Unable to load ${widget.showLikedPostsOnly ? 'liked posts' : 'feed'}',
-                    style: GoogleFonts.notoSans(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _initializeStream();
-                      });
-                    },
-                    child: Text(
-                      'Retry',
-                      style: GoogleFonts.notoSans(
-                        color: const Color(0xFFAFEB2B),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
+      body: SafeArea(
+        child: StreamBuilder<List<Post>>(
+          stream: _finalPostsStream,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return _buildErrorState(screenWidth);
+            }
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _buildLoadingState();
+            }
+
+            final posts = snapshot.data ?? [];
+            
+            if (posts.isEmpty) {
+              return _buildEmptyState(screenWidth);
+            }
+
             return ListView.builder(
-              itemCount: 3,
-              itemBuilder: (context, index) => _buildShimmerEffect(),
-            );
-          }
-
-          final posts = snapshot.data ?? [];
-          
-          if (posts.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    widget.showLikedPostsOnly ? Icons.favorite_border : Icons.post_add,
-                    color: Colors.grey[400],
-                    size: 48,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.showLikedPostsOnly 
-                      ? 'No liked posts yet'
-                      : 'No posts available',
-                    style: GoogleFonts.notoSans(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
+              itemCount: posts.length,
+              itemBuilder: (context, index) => _PostCard(
+                post: posts[index],
+                likesService: _likesService,
+                onLikeChanged: widget.showLikedPostsOnly ? _handleLikeChanged : null,
+                screenWidth: screenWidth,
+                screenHeight: screenHeight,
               ),
             );
-          }
+          },
+        ),
+      ),
+    );
+  }
 
-          return AnimatedList(
-            initialItemCount: posts.length,
-            itemBuilder: (context, index, animation) {
-              return SlideTransition(
-                position: animation.drive(
-                  Tween(
-                    begin: const Offset(0, 0.5),
-                    end: const Offset(0, 0),
-                  ).chain(CurveTween(curve: Curves.easeOutCubic))
-                ),
-                child: FadeTransition(
-                  opacity: animation,
-                  child: _PostCard(
-                    post: posts[index],
-                    likesService: _likesService,
-                    onLikeChanged: widget.showLikedPostsOnly ? _handleLikeChanged : null,
-                  ),
-                ),
-              );
-            },
-          );
-        },
+  Widget _buildErrorState(double screenWidth) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Unable to load ${widget.showLikedPostsOnly ? 'liked posts' : 'feed'}',
+            style: GoogleFonts.notoSans(
+              color: Colors.white,
+              fontSize: screenWidth * 0.04,
+            ),
+          ),
+          SizedBox(height: screenWidth * 0.02),
+          TextButton(
+            onPressed: () => setState(() => _initializeStream()),
+            child: Text(
+              'Retry',
+              style: GoogleFonts.notoSans(
+                color: const Color(0xFFAFEB2B),
+                fontSize: screenWidth * 0.04,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return ListView.builder(
+      itemCount: 3,
+      itemBuilder: (context, index) => _buildShimmerEffect(),
+    );
+  }
+
+  Widget _buildEmptyState(double screenWidth) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            widget.showLikedPostsOnly ? Icons.favorite_border : Icons.post_add,
+            color: Colors.grey[400],
+            size: screenWidth * 0.12,
+          ),
+          SizedBox(height: screenWidth * 0.04),
+          Text(
+            widget.showLikedPostsOnly 
+              ? 'No liked posts yet'
+              : 'No posts available',
+            style: GoogleFonts.notoSans(
+              color: Colors.white,
+              fontSize: screenWidth * 0.04,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   void _handleLikeChanged(Post post, bool isLiked) {
     if (!isLiked) {
-      // Refresh the stream when a post is unliked in the liked posts view
-      setState(() {
-        _initializeStream();
-      });
+      setState(() => _initializeStream());
     }
   }
 
@@ -205,18 +206,80 @@ class _PostCard extends StatelessWidget {
   final Post post;
   final LikesService likesService;
   final Function(Post, bool)? onLikeChanged;
+  final double screenWidth;
+  final double screenHeight;
 
   const _PostCard({
     Key? key,
     required this.post,
     required this.likesService,
+    required this.screenWidth,
+    required this.screenHeight,
     this.onLikeChanged,
   }) : super(key: key);
 
+  void _showLikeToast(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.favorite, color: Colors.white),
+            SizedBox(width: screenWidth * 0.02),
+            Expanded(
+              child: Text(
+                'Post added to your likes!',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF87B321),
+        action: SnackBarAction(
+          label: 'View Likes',
+          textColor: Colors.white,
+          onPressed: () {
+            Navigator.of(context).push(GentlePageTransition(page: LikedPostsPage()));
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleLike(BuildContext context, bool isLiked) async {
+    HapticFeedback.mediumImpact();
+    try {
+      if (isLiked) {
+        await likesService.unlikePost(post.id);
+      } else {
+        await likesService.likePost(post.id);
+        _showLikeToast(context);
+      }
+      onLikeChanged?.call(post, !isLiked);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to update like status',
+            style: TextStyle(fontSize: screenWidth * 0.04),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final double imageHeight = screenHeight * 0.4; // Responsive image height
+    final double avatarSize = screenWidth * 0.1; // Responsive avatar size
+    
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.04,
+        vertical: screenHeight * 0.01,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -226,79 +289,143 @@ class _PostCard extends StatelessWidget {
                   ? InkWell(
                       onTap: () => Navigator.of(context).push(
                         GentlePageTransition(
-                          page: UserOrganizerProfileScreen(
-                            organizerId: post.organizerId,
-                          ),
+                          page: UserOrganizerProfileScreen(organizerId: post.organizerId),
                         ),
                       ),
                       child: ClipOval(
                         child: CachedNetworkImage(
                           imageUrl: post.organizerImageUrl,
-                          width: 40,
-                          height: 40,
+                          width: avatarSize,
+                          height: avatarSize,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => _buildOrganizerAvatar(),
-                          errorWidget: (context, url, error) =>
-                              _buildOrganizerAvatar(),
+                          placeholder: (context, url) => _buildAvatarPlaceholder(),
+                          errorWidget: (context, url, error) => _buildAvatarPlaceholder(),
                         ),
                       ),
                     )
-                  : _buildOrganizerAvatar(),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    post.organizerName,
-                    style: GoogleFonts.syne(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                  : _buildAvatarPlaceholder(),
+              SizedBox(width: screenWidth * 0.03),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      post.organizerName,
+                      style: GoogleFonts.syne(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: screenWidth * 0.04,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  Text(
-                    timeago.format(post.timestamp),
-                    style: GoogleFonts.notoSans(
-                      color: Colors.grey[400],
-                      fontSize: 12,
+                    Text(
+                      timeago.format(post.timestamp),
+                      style: GoogleFonts.notoSans(
+                        color: Colors.grey[400],
+                        fontSize: screenWidth * 0.03,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: screenHeight * 0.015),
+          
           ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Hero(
-              tag: 'post-${post.id}',
-              child: Stack(
-                children: [
-                  CachedNetworkImage(
-                    imageUrl: post.imageUrl,
-                    placeholder: (context, url) => Container(
-                      height: 300,
-                      color: Colors.grey[900],
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFFAFEB2B),
+            borderRadius: BorderRadius.circular(screenWidth * 0.025),
+            child: Stack(
+              children: [
+                StreamBuilder<bool>(
+                  stream: likesService.isPostLiked(post.id),
+                  initialData: post.isLiked,
+                  builder: (context, snapshot) {
+                    final isLiked = snapshot.data ?? false;
+                    return GestureDetector(
+                      onDoubleTap: () {
+                        if (!isLiked) {
+                          _handleLike(context, isLiked);
+                        }
+                      },
+                      child: CachedNetworkImage(
+                        imageUrl: post.imageUrl,
+                        height: imageHeight,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          height: imageHeight,
+                          color: Colors.grey[900],
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Color(0xFFAFEB2B),
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          height: imageHeight,
+                          color: Colors.grey[900],
+                          child: Icon(
+                            Icons.error,
+                            color: const Color(0xFFAFEB2B),
+                            size: screenWidth * 0.1,
+                          ),
                         ),
                       ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      height: 300,
-                      color: Colors.grey[900],
-                      child: const Icon(Icons.error, color: Color(0xFFAFEB2B)),
-                    ),
-                    fit: BoxFit.cover,
-                    width: double.infinity,
+                    );
+                  },
+                ),
+                
+                Positioned(
+                  bottom: screenHeight * 0.02,
+                  right: screenWidth * 0.04,
+                  child: StreamBuilder<bool>(
+                    stream: likesService.isPostLiked(post.id),
+                    initialData: post.isLiked,
+                    builder: (context, snapshot) {
+                      final isLiked = snapshot.data ?? false;
+                      return LikeButton(
+                        size: screenWidth * 0.08,
+                        isLiked: isLiked,
+                        likeBuilder: (bool isLiked) {
+                          return Icon(
+                            isLiked ? Icons.favorite : Icons.favorite_border,
+                            color: isLiked ? const Color(0xFFAFEB2B) : Colors.white,
+                            size: screenWidth * 0.08,
+                          );
+                        },
+                        onTap: (isLiked) async {
+                          await _handleLike(context, isLiked);
+                          return !isLiked;
+                        },
+                        bubblesSize: screenWidth * 0.12,
+                        circleSize: screenWidth * 0.2,
+                        padding: EdgeInsets.zero,
+                        circleColor: const CircleColor(
+                          start: Color(0xFFAFEB2B),
+                          end: Color(0xFF87B321),
+                        ),
+                        bubblesColor: const BubblesColor(
+                          dotPrimaryColor: Color(0xFFAFEB2B),
+                          dotSecondaryColor: Color(0xFF87B321),
+                        ),
+                      );
+                    },
                   ),
-                  Positioned(
-                    bottom: 16,
-                    right: 16,
-                    child: _buildLikeButton(context),
-                  ),
-                ],
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(screenWidth * 0.02),
+            child: Text(
+              '#${post.description!}',
+              style: GoogleFonts.notoSans(
+                fontWeight: FontWeight.bold,
+                fontSize: screenWidth * 0.038,
+                color: white,
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
             ),
           ),
         ],
@@ -306,84 +433,17 @@ class _PostCard extends StatelessWidget {
     );
   }
 
-  Widget _buildOrganizerAvatar() {
+  Widget _buildAvatarPlaceholder() {
     return CircleAvatar(
-      radius: 20,
+      radius: screenWidth * 0.05,
       backgroundColor: const Color(0xFFAFEB2B),
       child: Text(
         post.organizerName[0].toUpperCase(),
         style: GoogleFonts.syne(
           color: Colors.black,
           fontWeight: FontWeight.bold,
+          fontSize: screenWidth * 0.04,
         ),
-      ),
-    );
-  }
-
-  Widget _buildLikeButton(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(50),
-      ),
-      padding: const EdgeInsets.all(8),
-      child: StreamBuilder<bool>(
-        stream: likesService.isPostLiked(post.id),
-        builder: (context, snapshot) {
-          final isLiked = snapshot.data ?? false;
-          
-          return LikeButton(
-            size: 32,
-            isLiked: isLiked,
-            circleColor: const CircleColor(
-              start: Color(0xFFAFEB2B),
-              end: Color(0xFFCCFF33),
-            ),
-            bubblesColor: const BubblesColor(
-              dotPrimaryColor: Color(0xFFAFEB2B),
-              dotSecondaryColor: Color(0xFFCCFF33),
-              dotThirdColor: Colors.white,
-              dotLastColor: Color(0xFFE6FF99),
-            ),
-            likeBuilder: (bool isLiked) {
-              return TweenAnimationBuilder<double>(
-                tween: Tween<double>(
-                  begin: isLiked ? 0.8 : 1.0,
-                  end: isLiked ? 1.0 : 0.8,
-                ),
-                duration: const Duration(milliseconds: 200),
-                builder: (context, value, child) {
-                  return Transform.scale(
-                    scale: value,
-                    child: Icon(
-                      isLiked ? Icons.favorite : Icons.favorite_border,
-                      color: isLiked ? const Color(0xFFAFEB2B) : Colors.white,
-                      size: 32,
-                    ),
-                  );
-                },
-              );
-            },
-            onTap: (isLiked) async {
-              HapticFeedback.mediumImpact();
-              
-              try {
-                await likesService.toggleLike(post);
-                onLikeChanged?.call(post, !isLiked);
-                return !isLiked;
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Failed to update like status'),
-                    backgroundColor: Colors.red,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-                return isLiked;
-              }
-            },
-          );
-        },
       ),
     );
   }
