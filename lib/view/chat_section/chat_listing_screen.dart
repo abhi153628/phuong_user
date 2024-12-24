@@ -194,7 +194,7 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.all(13.0),
+      padding: const EdgeInsets.only(top: 40,left: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:phuong/services/likes_services.dart';
 
-import 'package:phuong/view/social_feed/widgets/main_post_screen.dart';
+import 'package:phuong/view/social_feed/widgets/feed_page.dart';
 
 class LikedPostsPage extends StatelessWidget {
   final LikesService _likesService = LikesService();

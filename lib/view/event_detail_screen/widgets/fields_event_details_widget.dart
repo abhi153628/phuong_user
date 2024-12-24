@@ -17,31 +17,27 @@ import 'package:phuong/view/homepage/widgets/colors.dart';
 class EventDetailsPage extends StatelessWidget {
   final UserProfileService _userProfileService = UserProfileService();
   final EventModel event;
-   EventDetailsPage({
+
+  EventDetailsPage({
     Key? key,
-    required this.event, 
+    required this.event,
   }) : super(key: key);
+
   bool isEventBookable(DateTime? eventDate) {
-  if (eventDate == null) return false;
-  
-  final now = DateTime.now();
-  final bookingCloseDate = eventDate.subtract(const Duration(days: 1));
-  
-  return now.isBefore(bookingCloseDate);
-}
-
-
+    if (eventDate == null) return false;
+    final now = DateTime.now();
+    final bookingCloseDate = eventDate.subtract(const Duration(days: 1));
+    return now.isBefore(bookingCloseDate);
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-     final isBookable = isEventBookable(event.date);
-     
+    final isBookable = isEventBookable(event.date);
 
     return Scaffold(
       backgroundColor: scaffoldColor,
-      // Remove the bottom navigation bar from the body
       body: Stack(
         children: [
           // Main scrollable content
@@ -50,7 +46,7 @@ class EventDetailsPage extends StatelessWidget {
               padding: EdgeInsets.symmetric(
                 horizontal: screenWidth * 0.03,
                 vertical: screenHeight * 0.01,
-              ).copyWith(bottom: isBookable ? 100 : 20), // Add extra bottom padding for the bottom bar
+              ).copyWith(bottom: isBookable ? 100 : 20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -64,14 +60,25 @@ class EventDetailsPage extends StatelessWidget {
                     event: event,
                   ),
                   const SizedBox(height: 30),
-                  //!----------------------------
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                  Stack(
                     children: [
-                      Text(
-                        'Quick Outlook',
-                        style: GoogleFonts.notoSans(
-                            fontSize: 15, color: white, letterSpacing: 1),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Quick Outlook',
+                            style: GoogleFonts.notoSans(
+                              fontSize: 16,
+                              color: white,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Positioned(
+                        right: 30,
+                        top: 0,
+                        child: _buildSaveButton(context),
                       ),
                     ],
                   ),
@@ -80,87 +87,159 @@ class EventDetailsPage extends StatelessWidget {
                     screenWidth: screenWidth,
                     event: event,
                   ),
-                  //! --------------------------
-                  SizedBox(
-                    height: 30,
-                  ),
+                  const SizedBox(height: 30),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
                         'Event Terms & Conditions',
                         style: GoogleFonts.notoSans(
-                            fontSize: 15, color: white, letterSpacing: 1),
+                          fontSize: 15,
+                          color: white,
+                          letterSpacing: 1,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
-                    Positioned(
-            top: MediaQuery.of(context).padding.top + 16,
-            right: 16,
-            child: _buildSaveButton(context),
-          ),
-
                   EventTermsAndConditions(
                     eventRules: event.eventRules ?? [],
                   ),
-                  // Remove _buildBottomBar from here
                 ],
               ),
             ),
           ),
-
-            // Only show bottom bar if event is bookable
-            if (isBookable)
+          // Back button
           Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: _buildBottomBar(context),
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 10,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: IconButton(
+                icon: Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
           ),
+          // Bottom bar
+          if (isBookable)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _buildBottomBar(context),
+            ),
         ],
       ),
     );
   }
-    Widget _buildSaveButton(BuildContext context) {
-    return StreamBuilder<bool>(
-      stream: Stream.fromFuture(
-        EventService().isEventSaved(_userProfileService.userId, event.eventId!)
-      ),
-      builder: (context, snapshot) {
-        final isSaved = snapshot.data ?? false;
-        
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(30),
+   Widget _buildSaveButton(BuildContext context) {
+  return StreamBuilder<bool>(
+    stream: EventService().isEventSavedStream(_userProfileService.userId, event.eventId!),
+    initialData: false,
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return SizedBox(); // Hide button if there's an error
+      }
+
+      final isSaved = snapshot.data ?? false;
+      
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: IconButton(
+          icon: Icon(
+            isSaved ? Icons.bookmark : Icons.bookmark_border,
+            color: isSaved ? AppColors.activeGreen : Colors.white,
           ),
-          child: IconButton(
-            icon: Icon(
-              isSaved ? Icons.bookmark : Icons.bookmark_border,
-              color: isSaved ? AppColors.activeGreen : Colors.white,
-            ),
-            onPressed: () async {
-              try {
-                if (isSaved) {
-                  await EventService().unsaveEvent(_userProfileService.userId, event.eventId!);
-                } else {
-                  await EventService().saveEvent(_userProfileService.userId, event.eventId!);
-                }
-              } catch (e) {
+          onPressed: () async {
+            try {
+              if (isSaved) {
+                await EventService().unsaveEvent(_userProfileService.userId, event.eventId!);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Error: ${e.toString()}'),
-                    backgroundColor: Colors.red,
+                    content: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.white),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Event removed from saved events',
+                            style: GoogleFonts.notoSans(),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Colors.grey[800],
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              } else {
+                await EventService().saveEvent(_userProfileService.userId, event.eventId!);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: AppColors.activeGreen),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Event saved successfully',
+                            style: GoogleFonts.notoSans(),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Colors.grey[800],
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    duration: Duration(seconds: 2),
                   ),
                 );
               }
-            },
-          ),
-        );
-    });
-    }
-
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      Icon(Icons.error_outline, color: Colors.red),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Failed to update saved status',
+                          style: GoogleFonts.notoSans(),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Colors.grey[800],
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            }
+          },
+        ),
+      );
+    },
+  );
+}
 
 
   Widget _buildBottomBar(BuildContext context) {
@@ -253,7 +332,7 @@ class MainContentWidget extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          _buildBackButton(context),
+        
           _buildGradientContainer(),
           _buildBookingStatusBar(context),
           _buildDateOverlay(),
@@ -262,16 +341,7 @@ class MainContentWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildBackButton(BuildContext context) {
-    return Positioned(
-      left: 0,
-      top: 0,
-      child: IconButton(
-        icon: const Icon(Icons.arrow_back_ios, color: Colors.grey),
-        onPressed: () => Navigator.pop(context),
-      ),
-    );
-  }
+
 
   Widget _buildGradientContainer() {
     return Container(

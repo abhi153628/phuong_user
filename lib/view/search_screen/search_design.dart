@@ -53,44 +53,39 @@ class _SearchBarHomeScreenState extends State<SearchBarHomeScreen>
 
   @override
   Widget build(BuildContext context) {
-  
-
     return SlideTransition(
       position: _slideAnimation,
       child: FadeTransition(
         opacity: _fadeAnimation,
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-          decoration: BoxDecoration(
-            color: Color(0xFF545f72),
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(
-              color: AppColors.activeGreen.withOpacity(0.2),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.activeGreen.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 15,
-                offset: const Offset(0, 4),
-              ),
-            ],
+        child: GestureDetector(
+          onTap: (){ Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => EventSearchScreen(),
           ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
+        );},
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Color(0xFF545f72),
               borderRadius: BorderRadius.circular(15),
-      onTap: () {
-  Navigator.push(
-    context,
-    GentlePageTransition(page: EventSearchScreen(),),
-  );
-},
-
-
+              border: Border.all(
+                color: AppColors.activeGreen.withOpacity(0.2),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.activeGreen.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 15,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
                 child: Row(
                   children: [
                     Icon(
@@ -102,10 +97,9 @@ class _SearchBarHomeScreenState extends State<SearchBarHomeScreen>
                     Expanded(
                       child: DefaultTextStyle(
                         style: GoogleFonts.syne(
-                          fontSize: 16,
-                          color: Colors.white70,
-                          letterSpacing: 1
-                        ),
+                            fontSize: 16,
+                            color: Colors.white70,
+                            letterSpacing: 1),
                         child: AnimatedTextKit(
                           repeatForever: true,
                           pause: const Duration(milliseconds: 1000),

@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:phuong/firebase_options.dart';
 import 'package:phuong/repository/search_provider.dart';
 import 'package:phuong/view/homepage/homepage.dart';
@@ -23,6 +24,10 @@ void main() async {
   runApp(MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => SearchProvider())],
       child: const MyApp()));
+    SystemChrome.setEnabledSystemUIMode(
+  SystemUiMode.edgeToEdge,
+  overlays: [],
+);
 }
 
 class MyApp extends StatelessWidget {
@@ -33,6 +38,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: lightmode,
+      
       //EventSearchScreen()
       //EventsScreen()
       home: Wrapper(),
@@ -40,14 +46,4 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: FloatingActionButton(onPressed: () {}),
-      body: const Center(child: Wrapper()),
-    );
-  }
-}

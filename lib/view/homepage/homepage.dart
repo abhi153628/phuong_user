@@ -1,20 +1,21 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/modal/user_profile_modal.dart';
 import 'package:phuong/services/event_fetching_firebase_service.dart';
 import 'package:phuong/services/user_profile_firebase_service.dart';
-
+import 'package:phuong/utils/cstm_transition.dart';
+import 'package:phuong/view/Notification_section/Notification_page.dart';
 import 'package:phuong/view/homepage/search_bar.dart';
 import 'package:phuong/view/homepage/widgets/category_button.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/homepage/widgets/home_event_card.dart';
-
 import 'package:phuong/view/homepage/widgets/event_carousel.dart';
-
 import 'package:phuong/view/search_screen/search_design.dart';
+import 'package:phuong/view/search_screen/search_page.dart';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({Key? key}) : super(key: key);
@@ -28,6 +29,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   final UserProfileService _userProfileService = UserProfileService();
   String? _userCurrentLocation;
   int _selectedCategory = 0;
+  bool _isInitialLoad = true;
   final List<String> categories = [
     'My feed',
     'Rock',
@@ -89,8 +91,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
             userId: _userProfileService.userId,
             latitude: position.latitude,
             longitude: position.longitude,
-            address: address, name: '',
-            // ... other required fields
+            address: address,
+            name: '',
           );
 
           await _userProfileService.updateUserProfile(userProfile);
@@ -128,31 +130,30 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     }
   }
 
- Widget _buildSectionTitle() {
-  // This is the single source of truth for the title
-  String title = _selectedCategory == 0
-      ? 'Nearby Events'
-      : '${categories[_selectedCategory]} Events';
+  Widget _buildSectionTitle() {
+    // This is the single source of truth for the title
+    String title = _selectedCategory == 0
+        ? 'Nearby Events'
+        : '${categories[_selectedCategory]} Events';
 
-  return AnimatedTextKit(
-    key: ValueKey(title),
-    animatedTexts: [
-      TypewriterAnimatedText(
-        title,  // Using the title here
-        textStyle: GoogleFonts.syne(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: const Color.fromARGB(255, 210, 226, 174),
+    return AnimatedTextKit(
+      key: ValueKey(title),
+      animatedTexts: [
+        TypewriterAnimatedText(
+          title, // Using the title here
+          textStyle: GoogleFonts.syne(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: const Color.fromARGB(255, 210, 226, 174),
+          ),
+          speed: const Duration(milliseconds: 50),
         ),
-        speed: const Duration(milliseconds: 50),
-      ),
-    ],
-    totalRepeatCount: 1,
-    displayFullTextOnTap: true,
-    stopPauseOnTap: true,
-
-  );
-}
+      ],
+      totalRepeatCount: 1,
+      displayFullTextOnTap: true,
+      stopPauseOnTap: true,
+    );
+  }
 
   void _filterEvents() {
     setState(() {
@@ -197,42 +198,34 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                 );
               });
             }
-          } else {
-            _filteredEvents = [];
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                      'Please enable location services to see nearby events'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            });
           }
           break;
         case 1:
-         _filteredEvents = _allEvents.where((event) => 
-            event.genreType!.toLowerCase() == 'rock').toList();
+          _filteredEvents = _allEvents
+              .where((event) => event.genreType!.toLowerCase() == 'rock')
+              .toList();
 
           break;
         case 2:
-            _filteredEvents = _allEvents.where((event) => 
-            event.genreType!.toLowerCase() == 'classical').toList();
+          _filteredEvents = _allEvents
+              .where((event) => event.genreType!.toLowerCase() == 'classical')
+              .toList();
           break;
         case 3:
-          _filteredEvents = _allEvents.where((event) => 
-            event.genreType!.toLowerCase() == 'pop').toList();
+          _filteredEvents = _allEvents
+              .where((event) => event.genreType!.toLowerCase() == 'pop')
+              .toList();
           break;
         case 4:
-           _filteredEvents = _allEvents.where((event) => 
-            event.genreType!.toLowerCase() == 'jazz').toList();
+          _filteredEvents = _allEvents
+              .where((event) => event.genreType!.toLowerCase() == 'jazz')
+              .toList();
           break;
         default:
           _filteredEvents = _allEvents;
       }
     });
   }
-  
 
   @override
   void dispose() {
@@ -250,7 +243,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       _animationController.reverse();
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -284,7 +276,18 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                           const SizedBox(height: 15),
                           _buildCategories(),
                           const SizedBox(height: 15),
-                          if (!_isSearchBarSticky) const SearchBarHomeScreen(),
+                          if (!_isSearchBarSticky)
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EventSearchScreen(),
+                                  ),
+                                );
+                              },
+                              child: SearchBarHomeScreen(),
+                            ),
                         ],
                       ),
                     ),
@@ -330,12 +333,13 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                               ? Center(
                                   child: Text(
                                     _selectedCategory == 0
-                                        ? 'No nearby events found'
-                                        : 'No ${categories[_selectedCategory].toLowerCase()} events found',
+                                        ? 'Please enable location services to explore events near you.'
+                                        : 'No ${categories[_selectedCategory].toLowerCase()} events are currently available.',
                                     style: GoogleFonts.syne(
                                       color: Colors.white,
                                       fontSize: 16,
                                     ),
+                                    textAlign: TextAlign.center,
                                   ),
                                 )
                               : Column(
@@ -386,7 +390,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     );
   }
 
-  // Other existing methods remain the same (_buildHeader(), _buildCategories())
   Widget _buildHeader() {
     return Padding(
       padding: EdgeInsets.all(15),
@@ -395,9 +398,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         children: [
           Text('Discover',
               style: GoogleFonts.syne(
-                color: white,
-                fontSize: 33,
-              )),
+                  color: white,
+                  fontSize: 29,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.2)),
           Row(
             children: [
               Container(
@@ -419,7 +423,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                     IconButton(
                       icon: const Icon(Icons.notifications_none,
                           color: AppColors.white),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.of(context).push(
+                            GentlePageTransition(page: NotificationPage()));
+                      },
                     ),
                   ],
                 ),

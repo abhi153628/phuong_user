@@ -4,8 +4,10 @@ import 'package:like_button/like_button.dart';
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/organizer_profile_modal.dart';
 import 'package:phuong/services/likes_services.dart';
+import 'package:phuong/services/organizer_profile_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/event_organizer_view_page/event_organizer_view_page.dart';
+import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/social_feed/liked_post.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -15,8 +17,10 @@ import 'package:timeago/timeago.dart' as timeago;
 class FeedPage extends StatefulWidget {
   final bool showLikedPostsOnly;
   final Stream<List<Post>> postsStream;
+ 
 
-  const FeedPage({
+
+   FeedPage({
     Key? key, 
     required this.postsStream,
     this.showLikedPostsOnly = false,
@@ -29,11 +33,17 @@ class FeedPage extends StatefulWidget {
 class _FeedPageState extends State<FeedPage> {
   final LikesService _likesService = LikesService();
   late Stream<List<Post>> _finalPostsStream;
+   final UserOrganizerProfileService _profileService =
+      UserOrganizerProfileService();
+         List<OrganizerProfile> _allOrganizers = [];
+  List<OrganizerProfile> _filteredOrganizers = [];
+    bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _initializeStream();
+     _loadOrganizers();
   }
 
   void _initializeStream() {
@@ -41,6 +51,23 @@ class _FeedPageState extends State<FeedPage> {
       ? _likesService.getLikedPosts()
       : widget.postsStream;
   }
+  Future<void> _loadOrganizers() async {
+    try {
+      setState(() => _isLoading = true);
+      _allOrganizers = await _profileService.getAllOrganizers();
+      setState(() {
+        _filteredOrganizers = _allOrganizers;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading organizers: $e');
+      setState(() {
+        _isLoading = false;
+        _filteredOrganizers = []; // Empty list in case of error
+      });
+    }
+  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -49,53 +76,189 @@ class _FeedPageState extends State<FeedPage> {
     final screenHeight = mediaQuery.size.height;
     final padding = mediaQuery.padding;
     
-    return Scaffold(
+   return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: Text(
-          widget.showLikedPostsOnly ? 'Liked Posts' : 'Band Feed',
-          style: GoogleFonts.syne(
-            color: const Color(0xFFAFEB2B),
-            fontSize: screenWidth * 0.06, // Responsive font size
-            fontWeight: FontWeight.bold,
+        title: Padding(
+          padding: const EdgeInsets.only(top: 40, left: 20),
+          child: Text(
+            widget.showLikedPostsOnly ? 'Liked Posts' : 'Band Feed',
+            style: GoogleFonts.syne(
+              color: const Color(0xFFAFEB2B),
+              fontSize: screenWidth * 0.06,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         elevation: 0,
       ),
-      body: SafeArea(
-        child: StreamBuilder<List<Post>>(
-          stream: _finalPostsStream,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return _buildErrorState(screenWidth);
-            }
-
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return _buildLoadingState();
-            }
-
-            final posts = snapshot.data ?? [];
+      body: Column(
+        children: [
+          _buildOrganizerAvatars(),
+          Expanded( // Wrap StreamBuilder with Expanded
+            child: StreamBuilder<List<Post>>(
+              stream: _finalPostsStream,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return _buildErrorState(screenWidth);
+                }
             
-            if (posts.isEmpty) {
-              return _buildEmptyState(screenWidth);
-            }
-
-            return ListView.builder(
-              itemCount: posts.length,
-              itemBuilder: (context, index) => _PostCard(
-                post: posts[index],
-                likesService: _likesService,
-                onLikeChanged: widget.showLikedPostsOnly ? _handleLikeChanged : null,
-                screenWidth: screenWidth,
-                screenHeight: screenHeight,
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return _buildLoadingState();
+                }
+            
+                final posts = snapshot.data ?? [];
+                
+                if (posts.isEmpty) {
+                  return _buildEmptyState(screenWidth);
+                }
+            
+                return ListView.builder(
+                  shrinkWrap: true, // Add this
+                  physics: const AlwaysScrollableScrollPhysics(), // Add this
+                  itemCount: posts.length,
+                  itemBuilder: (context, index) => _PostCard(
+                    post: posts[index],
+                    likesService: _likesService,
+                    onLikeChanged: widget.showLikedPostsOnly ? _handleLikeChanged : null,
+                    screenWidth: screenWidth,
+                    screenHeight: screenHeight,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+    Widget _buildOrganizerAvatars() {
+    return Container(
+      height: 90,
+      margin: EdgeInsets.symmetric(vertical: 16),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        itemCount: _filteredOrganizers.length,
+        itemBuilder: (context, index) {
+          final organizer = _filteredOrganizers[index];
+          return _buildOrganizerAvatar(organizer);
+        },
+      ),
+    );
+  }
+   Widget _buildOrganizerAvatar(OrganizerProfile organizer) {
+  return Container(
+    margin: EdgeInsets.symmetric(horizontal: 6),
+    child: Column(
+      children: [
+        Hero(
+          tag: 'avatar_${organizer.id}',
+          child: GestureDetector(
+            onTap: () {
+              // Navigate to Organizer Details Page
+              Navigator.push(
+                context, 
+                MaterialPageRoute(
+                  builder: (context) => UserOrganizerProfileScreen(
+                    organizerId: organizer.id,
+                    
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Colors.black, Colors.white],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                border: Border.all(
+                  color: grey,
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.activeGreen.withOpacity(0.2),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ],
               ),
-            );
-          },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(35),
+                child: CachedNetworkImage(
+                  imageUrl: organizer.imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[900],
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: grey,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[900],
+                    child: Icon(Icons.person, color: Colors.grey),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: 8),
+        Text(
+          organizer.name,
+          style: GoogleFonts.notoSans(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    ),
+  );
+}
+
+
+  
+  
+  Widget _buildShimmerAvatar() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[900]!,
+      highlightColor: Colors.grey[800]!,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+        child: Column(
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+            ),
+            SizedBox(height: 8),
+            Container(
+              width: 50,
+              height: 10,
+              color: Colors.white,
+            ),
+          ],
         ),
       ),
     );
   }
+
 
   Widget _buildErrorState(double screenWidth) {
     return Center(

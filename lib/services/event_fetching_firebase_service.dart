@@ -117,20 +117,15 @@ class EventService {
   }
 
   // Check if event is saved by user
-  Future<bool> isEventSaved(String userId, String eventId) async {
-    try {
-      final doc = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('savedEvents')
-          .doc(eventId)
-          .get();
-      return doc.exists;
-    } catch (e) {
-      print('Error checking saved event: $e');
-      return false;
-    }
-  }
+Stream<bool> isEventSavedStream(String userId, String eventId) {
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .collection('savedEvents')
+      .doc(eventId)
+      .snapshots()
+      .map((doc) => doc.exists);
+}
     Stream<List<EventModel>> getSavedEvents(String userId) {
     return _firestore
         .collection('users')

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phuong/compensation_page.dart';
+
 import 'package:phuong/modal/organizer_profile_modal.dart';
 import 'package:phuong/services/organizer_profile_firebase_service.dart';
 import 'package:phuong/view/chat_section/chat_listing_screen.dart';
 import 'package:phuong/view/homepage/homepage.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/settings/settings_page.dart';
-import 'package:phuong/view/social_feed/widgets/main_post_screen.dart';
+import 'package:phuong/view/social_feed/widgets/feed_page.dart';
 
 class BottomNavbar extends StatefulWidget {
   const BottomNavbar({super.key});
@@ -29,16 +31,17 @@ class _BottomNavbarState extends State<BottomNavbar> {
   // Constants can remain static
   static const List<String> listOfStrings = [
     'Home',
-    'Favorite',
-    'Cart',
+    'Search',
+    'Chat',
     'Account'
   ];
 
   static const List<IconData> listOfIcons = [
     Icons.home_sharp,
-    Icons.favorite_sharp,
-    Icons.shopping_cart_rounded,
+    Icons.search,
+    Icons.forum,
     Icons.manage_accounts_sharp
+   
   ];
 
   @override
@@ -50,16 +53,18 @@ class _BottomNavbarState extends State<BottomNavbar> {
       const DiscoverScreen(),
       FeedPage(postsStream: _allPostsStream, ),
       UserChatListScreen(),
-    SettingsPage()
+SettingsPage()
     ];
   }
 
   @override
-  Widget build(BuildContext context) {
-    final bool isLightTheme = Theme.of(context).brightness == Brightness.light;
-    double displayWidth = MediaQuery.sizeOf(context).width;
-
-    return AnimatedSwitcher(
+ Widget build(BuildContext context) {
+  final bool isLightTheme = Theme.of(context).brightness == Brightness.light;
+  double displayWidth = MediaQuery.sizeOf(context).width;
+  
+  return MediaQuery(
+    data: MediaQuery.of(context).copyWith(padding: EdgeInsets.zero),
+    child: AnimatedSwitcher(
       duration: const Duration(milliseconds: 800),
       switchInCurve: Curves.easeInOut,
       switchOutCurve: Curves.easeInOut,
@@ -82,12 +87,17 @@ class _BottomNavbarState extends State<BottomNavbar> {
         );
       },
       child: Scaffold(
-        key: ValueKey(isLightTheme), // Key based on theme to trigger animation
-        body: screens[currentIndex],
+        key: ValueKey(isLightTheme),
+      
+     body: screens[currentIndex],
         backgroundColor: AppColors.scafoldColor,
         bottomNavigationBar: Container(
-          margin: EdgeInsets.symmetric(
-              vertical: displayWidth * 0.02, horizontal: displayWidth * 0.03),
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom + displayWidth * 0.02,
+            left: displayWidth * 0.03,
+            right: displayWidth * 0.03,
+            top: displayWidth * 0.02
+          ),
           height: displayWidth * .15,
           decoration: BoxDecoration(
               color: isLightTheme
@@ -192,6 +202,6 @@ class _BottomNavbarState extends State<BottomNavbar> {
                   )),
         ),
       ),
-    );
+   ) );
   }
 }

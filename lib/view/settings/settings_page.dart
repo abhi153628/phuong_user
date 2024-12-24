@@ -10,9 +10,13 @@ import 'package:phuong/services/user_profile_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/booked_events_page.dart';
 import 'package:phuong/view/event_detail_screen/widgets/ph_no_authentication_botom_sheet.dart';
+import 'package:phuong/view/homepage/homepage.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/saved_events/saved_events.dart';
+import 'package:phuong/view/ticket_section/event_tickets.dart';
 import 'package:phuong/view/social_feed/liked_post.dart';
+import 'package:phuong/view/ticket_section/ticket_list.dart';
+import 'package:shimmer/main.dart';
 
 class SettingsPage extends StatefulWidget {
   EventModel? event;
@@ -428,6 +432,8 @@ Widget _buildSettingsOptions() {
         _buildSettingsTile(
           icon: Icons.local_activity_outlined,
           title: 'Tickets',
+          // onTap: ()=> Navigator.of(context)
+          //     .push(GentlePageTransition(page: TicketListPage())),
         ),
         _buildSettingsTile(
           icon: Icons.favorite_outline,
@@ -483,7 +489,7 @@ Widget _buildSettingsOptions() {
         onPressed: () async {
           await FirebaseAuth.instance.signOut();
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => MyHomePage()),
+            MaterialPageRoute(builder: (context) => DiscoverScreen()),
           );
         },
         style: ElevatedButton.styleFrom(
