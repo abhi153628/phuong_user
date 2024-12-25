@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/auth_screens/auth_screen.dart';
-import 'package:phuong/view/login_page/login_page.dart';
+
 import 'package:phuong/view/onboarding_page/widgets/widgets.dart';
 
 class OnboardingScreen extends StatefulWidget {

@@ -55,31 +55,25 @@ class EventDetailsPage extends StatelessWidget {
                     event: event,
                   ),
                   const SizedBox(height: 20),
-                  EventNameWidget(
+                 EventNameWidget(
                     screenWidth: screenWidth,
                     event: event,
                   ),
                   const SizedBox(height: 30),
-                  Stack(
+                  // Fixed Quick Outlook row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Quick Outlook',
-                            style: GoogleFonts.notoSans(
-                              fontSize: 16,
-                              color: white,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        'Quick Outlook',
+                        style: GoogleFonts.notoSans(
+                          fontSize: 16,
+                          color: white,
+                          letterSpacing: 1,
+                        ),
                       ),
-                      Positioned(
-                        right: 30,
-                        top: 0,
-                        child: _buildSaveButton(context),
-                      ),
+                      _buildSaveButton(context),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -572,7 +566,7 @@ class EventNameWidget extends StatelessWidget {
                     fontWeight: FontWeight.w400,
                   ),
                   overflow: TextOverflow.ellipsis,
-                  maxLines: 3,
+                  maxLines: 1,
                 ),
               ],
             ),

@@ -432,8 +432,8 @@ Widget _buildSettingsOptions() {
         _buildSettingsTile(
           icon: Icons.local_activity_outlined,
           title: 'Tickets',
-          // onTap: ()=> Navigator.of(context)
-          //     .push(GentlePageTransition(page: TicketListPage())),
+          onTap: ()=> Navigator.of(context)
+              .push(GentlePageTransition(page: TicketListPage())),
         ),
         _buildSettingsTile(
           icon: Icons.favorite_outline,
