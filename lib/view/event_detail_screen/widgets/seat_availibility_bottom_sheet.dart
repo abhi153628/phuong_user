@@ -8,14 +8,12 @@ import 'package:phuong/services/event_fetching_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/event_detail_screen/payment_sucess_page.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
-import 'package:phuong/view/text';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class BookingBottomSheet extends StatefulWidget {
   final EventModel event;
 
-    final BookingService _bookingService = BookingService();
 
   BookingBottomSheet({Key? key, required this.event}) : super(key: key);
 

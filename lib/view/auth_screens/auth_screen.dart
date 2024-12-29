@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phuong/services/auth_services.dart';
 import 'package:phuong/utils/cstm_transition.dart';
-import 'package:phuong/view/bottom_navbar.dart';
+import 'package:phuong/view/main_screen.dart';
 
 
 class Helo extends StatefulWidget {
@@ -91,7 +91,7 @@ Future<void> _handleLogin() async {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) =>BottomNavbar(),
+          builder: (context) =>MainScreen(),
         ),
       );
     }
@@ -132,7 +132,7 @@ Future<void> _handleLogin() async {
         await Future.delayed(const Duration(seconds: 1)); // Simulate API call
         // ignore: use_build_context_synchronously
         Navigator.of(context)
-            .push(GentlePageTransition(page:BottomNavbar()));
+            .push(GentlePageTransition(page:MainScreen()));
         _signupEmailController.text = '';
         _signupPasswordController.text = '';
         _signupConfirmPasswordController.text = '';

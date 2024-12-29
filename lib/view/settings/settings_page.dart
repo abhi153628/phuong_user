@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:phuong/main.dart';
+
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/modal/user_profile_modal.dart';
 import 'package:phuong/services/user_profile_firebase_service.dart';
@@ -13,11 +13,12 @@ import 'package:phuong/view/event_detail_screen/widgets/ph_no_authentication_bot
 import 'package:phuong/view/homepage/homepage.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/saved_events/saved_events.dart';
-import 'package:phuong/view/ticket_section/event_tickets.dart';
+
 import 'package:phuong/view/social_feed/liked_post.dart';
 import 'package:phuong/view/ticket_section/ticket_list.dart';
-import 'package:shimmer/main.dart';
 
+
+// ignore: must_be_immutable
 class SettingsPage extends StatefulWidget {
   EventModel? event;
 

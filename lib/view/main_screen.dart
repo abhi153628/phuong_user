@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:phuong/compensation_page.dart';
+
 
 import 'package:phuong/modal/organizer_profile_modal.dart';
 import 'package:phuong/services/organizer_profile_firebase_service.dart';
@@ -11,14 +11,14 @@ import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/settings/settings_page.dart';
 import 'package:phuong/view/social_feed/widgets/feed_page.dart';
 
-class BottomNavbar extends StatefulWidget {
-  const BottomNavbar({super.key});
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
 
   @override
-  State<BottomNavbar> createState() => _BottomNavbarState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
-class _BottomNavbarState extends State<BottomNavbar> {
+class _MainScreenState extends State<MainScreen> {
   // Move currentIndex inside the State class
   int currentIndex = 0;
   

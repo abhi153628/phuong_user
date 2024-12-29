@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:phuong/compensation_page.dart';
+import 'package:phuong/view/Notification_section/compensation_ticket_section/compensation_page.dart';
 import 'package:phuong/services/user_profile_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/Notification_section/widgets/bottom_sheet_notification_deletion.dart';
