@@ -1,17 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-
 import 'package:phuong/modal/user_profile_modal.dart';
-
-// First, add these packages to pubspec.yaml:
-// geolocator: ^10.1.0
-// geocoding: ^2.1.1
-
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-
-
 
 class UserProfileService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -24,7 +16,6 @@ class UserProfileService {
     return user.uid;
   }
 
-  // Add this new method to handle location permissions and fetching
   Future<Position?> getCurrentLocation() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -51,7 +42,6 @@ class UserProfileService {
     }
   }
 
-  // Add this method to get address from coordinates
   Future<String?> getAddressFromCoordinates(double lat, double lng) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
@@ -66,29 +56,55 @@ class UserProfileService {
     }
   }
 
-   Future<void> updateUserProfile(UserProfile userProfile) async {
+  Future<void> updateUserProfile(UserProfile userProfile) async {
     try {
-      await _firestore.collection('userProfiles').doc(userId).set({
+      // First, get the existing data
+      final existingDoc = await _firestore.collection('userProfiles').doc(userId).get();
+      
+      // Prepare the update data
+      final Map<String, dynamic> updateData = {
         'userId': userId,
-        'name': userProfile.name,
-        'latitude': userProfile.latitude,
-        'longitude': userProfile.longitude,
-        'address': userProfile.address,
-        'phoneNumber': userProfile.phoneNumber, // Add this line to save phone number
         'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-      debugPrint('UserProfile updated successfully with phone number!');
+      };
+
+      // Only update fields that are not null in the userProfile
+      if (userProfile.name != null && userProfile.name!.isNotEmpty) {
+        updateData['name'] = userProfile.name;
+      }
+      if (userProfile.latitude != null) {
+        updateData['latitude'] = userProfile.latitude;
+      }
+      if (userProfile.longitude != null) {
+        updateData['longitude'] = userProfile.longitude;
+      }
+      if (userProfile.address != null) {
+        updateData['address'] = userProfile.address;
+      }
+      if (userProfile.phoneNumber != null) {
+        updateData['phoneNumber'] = userProfile.phoneNumber;
+      }
+
+      // If the document doesn't exist, include all fields
+      if (!existingDoc.exists) {
+        await _firestore.collection('userProfiles').doc(userId).set(updateData);
+      } else {
+        // If it exists, merge the updates
+        await _firestore.collection('userProfiles').doc(userId).update(updateData);
+      }
+
+      debugPrint('UserProfile updated successfully!');
     } catch (e) {
       debugPrint('Error updating UserProfile: $e');
-      throw Exception('Failed to update user profile');
+      throw Exception('Failed to update user profile: $e');
     }
   }
-    Future<void> updatePhoneNumber(String phoneNumber) async {
+
+  Future<void> updatePhoneNumber(String phoneNumber) async {
     try {
-      await _firestore.collection('userProfiles').doc(userId).set({
+      await _firestore.collection('userProfiles').doc(userId).update({
         'phoneNumber': phoneNumber,
         'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      });
       debugPrint('Phone number updated successfully!');
     } catch (e) {
       debugPrint('Error updating phone number: $e');
@@ -113,5 +129,3 @@ class UserProfileService {
     }
   }
 }
-  
-  

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/event_modal.dart';
@@ -9,10 +10,14 @@ import 'package:phuong/services/event_fetching_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/event_detail_screen/widgets/fields_event_details_widget.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
+import 'package:phuong/view/homepage/widgets/event_carousel/carousel_bloc/bloc/carousel_bloc.dart';
+import 'package:phuong/view/homepage/widgets/event_carousel/carousel_bloc/bloc/carousel_event.dart';
+import 'package:phuong/view/homepage/widgets/event_carousel/carousel_bloc/bloc/carousel_state.dart';
 
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+
 
 class EventsCarousel extends StatefulWidget {
   const EventsCarousel({Key? key}) : super(key: key);
@@ -22,20 +27,16 @@ class EventsCarousel extends StatefulWidget {
 }
 
 class _EventsCarouselState extends State<EventsCarousel> {
-  late Future<List<EventModel>> _eventsFuture;
-  final EventService _eventService = EventService();
   late PageController _pageController;
   double _currentPage = 0;
   Timer? _autoScrollTimer;
-  bool _isLoading = true;
-  List<EventModel> _cachedEvents = [];
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(viewportFraction: 0.85)
       ..addListener(_onPageChanged);
-    _loadEvents();
+    context.read<EventsBloc>().add(LoadEvents());
   }
 
   void _onPageChanged() {
@@ -46,37 +47,11 @@ class _EventsCarouselState extends State<EventsCarousel> {
     }
   }
 
-  Future<void> _loadEvents() async {
-    try {
-      setState(() => _isLoading = true);
-      final events = await _eventService.getEvents();
-      if (mounted) {
-        final now = DateTime.now();
-        setState(() {
-          // Filter out past events and sort by newest date first
-          _cachedEvents = events
-              .where((event) => 
-                  event.date != null && 
-                  event.date!.isAfter(now.subtract(const Duration(days: 1))))
-              .toList()
-            ..sort((a, b) => 
-                (b.date ?? DateTime.now()).compareTo(a.date ?? DateTime.now()));
-          _isLoading = false;
-        });
-        _setupAutoScroll();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  void _setupAutoScroll() {
+  void _setupAutoScroll(List<EventModel> events) {
     _autoScrollTimer?.cancel();
     _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (_pageController.hasClients && _cachedEvents.isNotEmpty) {
-        final nextPage = (_currentPage + 1) % _cachedEvents.length;
+      if (_pageController.hasClients && events.isNotEmpty) {
+        final nextPage = (_currentPage + 1) % events.length;
         _pageController.animateToPage(
           nextPage.toInt(),
           duration: const Duration(milliseconds: 800),
@@ -95,49 +70,134 @@ class _EventsCarouselState extends State<EventsCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return _buildShimmerLoading();
-    }
+    return BlocBuilder<EventsBloc, EventsState>(
+      builder: (context, state) {
+        if (state is EventsLoading) {
+          return _buildShimmerLoading();
+        }
 
-    if (_cachedEvents.isEmpty) {
-      return const SizedBox(
-        height: 260,
-        child: Center(
-          child: Text(
-            'No upcoming events',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.black54,
-              fontWeight: FontWeight.w500,
+        if (state is EventsError) {
+          return Container(
+            height: 260,
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.red.withOpacity(0.3)),
             ),
-          ),
-        ),
-      );
-    }
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red[400], size: 32),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Error: ${state.message}',
+                    style: GoogleFonts.syne(
+                      fontSize: 16,
+                      color: Colors.red[400],
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<EventsBloc>().add(LoadEvents());
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[400],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Retry',
+                      style: GoogleFonts.syne(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ).animate().fadeIn(duration: 600.ms);
+        }
 
-    return SizedBox(
-      height: 260,
-      child: PageView.builder(
-        controller: _pageController,
-        itemCount: _cachedEvents.length,
-        itemBuilder: (context, index) {
-          final event = _cachedEvents[index];
-          double difference = (index - _currentPage).abs().clamp(0.0, 1.0);
-          return InkWell(
-            onTap: () {
-              Navigator.of(context).push(
-                GentlePageTransition(
-                  page: EventDetailsPage(event: event),
+        if (state is EventsLoaded) {
+          final events = state.events;
+          if (events.isEmpty) {
+            return Container(
+              height: 260,
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.1),
+                  width: 1,
                 ),
-              );
-            },
-            child: ParallaxEventCard(
-              event: event,
-              pageOffset: difference,
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.event_busy,
+                      color: Colors.grey[400],
+                      size: 48,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No Upcoming Events',
+                      style: GoogleFonts.syne(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Check back later for new events',
+                      style: GoogleFonts.syne(
+                        fontSize: 14,
+                        color: Colors.grey[400],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ).animate().fadeIn(duration: 600.ms);
+          }
+
+          _setupAutoScroll(events);
+
+          return SizedBox(
+            height: 260,
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: events.length,
+              itemBuilder: (context, index) {
+                final event = events[index];
+                double difference = (index - _currentPage).abs().clamp(0.0, 1.0);
+                return InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      GentlePageTransition(
+                        page: EventDetailsPage(event: event),
+                      ),
+                    );
+                  },
+                  child: ParallaxEventCard(
+                    event: event,
+                    pageOffset: difference,
+                  ),
+                );
+              },
             ),
           );
-        },
-      ),
+        }
+
+        return const SizedBox.shrink();
+      },
     );
   }
 
@@ -148,8 +208,8 @@ class _EventsCarouselState extends State<EventsCarousel> {
         controller: PageController(viewportFraction: 0.85),
         itemCount: 3,
         itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8.0),
             child: ShimmerEventCard(),
           );
         },

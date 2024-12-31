@@ -209,7 +209,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> with Single
                     onPressed: () {
                       // Navigate back to home screen
                       Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) => DiscoverScreen()),
+                        MaterialPageRoute(builder: (context) => Homepage()),
                         (Route<dynamic> route) => false,
                       );
                     },

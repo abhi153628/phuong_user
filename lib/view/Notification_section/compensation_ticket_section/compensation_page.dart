@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:phuong/compensation_terms_condition.dart';
+import 'package:phuong/view/Notification_section/compensation_ticket_section/compensation_terms_condition.dart';
 
 
 import 'package:phuong/view/homepage/widgets/colors.dart';

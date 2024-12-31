@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:animated_text_kit/animated_text_kit.dart';
-
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/modal/user_profile_modal.dart';
 import 'package:phuong/services/user_profile_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
-import 'package:phuong/view/booked_events_page.dart';
+import 'package:phuong/view/settings_section/sub_pages/booked_events_page.dart';
+
 import 'package:phuong/view/event_detail_screen/widgets/ph_no_authentication_botom_sheet.dart';
 import 'package:phuong/view/homepage/homepage.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
-import 'package:phuong/view/saved_events/saved_events.dart';
+import 'package:phuong/view/settings_section/sub_pages/saved_events.dart';
+import 'package:phuong/view/settings_section/sub_pages/booked_tickets/booked_ticket_lists.dart';
+import 'package:phuong/view/settings_section/sub_pages/liked_post.dart';
 
-import 'package:phuong/view/social_feed/liked_post.dart';
-import 'package:phuong/view/ticket_section/ticket_list.dart';
 
 
 // ignore: must_be_immutable
@@ -490,7 +489,7 @@ Widget _buildSettingsOptions() {
         onPressed: () async {
           await FirebaseAuth.instance.signOut();
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => DiscoverScreen()),
+            MaterialPageRoute(builder: (context) => Homepage()),
           );
         },
         style: ElevatedButton.styleFrom(

@@ -8,7 +8,8 @@ import 'package:phuong/services/booking_service.dart';
 import 'package:phuong/services/event_fetching_firebase_service.dart';
 import 'package:phuong/view/event_detail_screen/widgets/fields_event_details_widget.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
-import 'package:phuong/view/ticket_section/event_tickets.dart';
+import 'package:phuong/view/settings_section/sub_pages/booked_tickets/user_ticket_view_page.dart';
+
 import 'package:shimmer/shimmer.dart';
 
 class TicketListPage extends StatefulWidget {

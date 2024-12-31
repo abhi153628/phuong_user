@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:phuong/services/auth_services.dart';
 
 import 'package:phuong/view/auth_screens/auth_screen.dart';
-import 'package:phuong/view/main_screen.dart';
+import 'package:phuong/view/bottom_nav_bar.dart';
 
 
 

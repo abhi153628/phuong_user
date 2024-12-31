@@ -13,18 +13,18 @@ import 'package:phuong/view/homepage/search_bar.dart';
 import 'package:phuong/view/homepage/widgets/category_button.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/homepage/widgets/home_event_card.dart';
-import 'package:phuong/view/homepage/widgets/event_carousel.dart';
+import 'package:phuong/view/homepage/widgets/event_carousel/event_carousel.dart';
 import 'package:phuong/view/search_screen/search_design.dart';
 import 'package:phuong/view/search_screen/search_page.dart';
 
-class DiscoverScreen extends StatefulWidget {
-  const DiscoverScreen({Key? key}) : super(key: key);
+class Homepage extends StatefulWidget {
+  const Homepage({Key? key}) : super(key: key);
 
   @override
-  _DiscoverScreenState createState() => _DiscoverScreenState();
+  _HomepageState createState() => _HomepageState();
 }
 
-class _DiscoverScreenState extends State<DiscoverScreen>
+class _HomepageState extends State<Homepage>
     with SingleTickerProviderStateMixin {
   final UserProfileService _userProfileService = UserProfileService();
   String? _userCurrentLocation;

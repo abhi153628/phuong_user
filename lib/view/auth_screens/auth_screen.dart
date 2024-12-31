@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lottie/lottie.dart';
 import 'package:phuong/services/auth_services.dart';
 import 'package:phuong/utils/cstm_transition.dart';
-import 'package:phuong/view/main_screen.dart';
-
+import 'package:phuong/view/bottom_nav_bar.dart';
+import 'package:phuong/view/homepage/widgets/colors.dart';
 
 class Helo extends StatefulWidget {
   const Helo({super.key});
@@ -14,27 +13,26 @@ class Helo extends StatefulWidget {
 }
 
 class _HeloState extends State<Helo> with SingleTickerProviderStateMixin {
-
-   final FirebaseAuthServices _auth = FirebaseAuthServices();
-  // Form keys for validation
+  final FirebaseAuthServices _auth = FirebaseAuthServices();
   final _loginFormKey = GlobalKey<FormState>();
   final _signupFormKey = GlobalKey<FormState>();
+  final _forgotPasswordFormKey = GlobalKey<FormState>();
   final _pageController = PageController();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
-  // Login controllers
+  // Controllers
   final _loginEmailController = TextEditingController();
   final _loginPasswordController = TextEditingController();
-
-  // Signup controllers
   final _signupNameController = TextEditingController();
   final _signupEmailController = TextEditingController();
   final _signupPasswordController = TextEditingController();
   final _signupConfirmPasswordController = TextEditingController();
+  final _forgotPasswordEmailController = TextEditingController();
 
   bool _isLoginPage = true;
   bool _isLoading = false;
+  bool _isForgotPasswordVisible = false;
 
   @override
   void initState() {
@@ -59,6 +57,7 @@ class _HeloState extends State<Helo> with SingleTickerProviderStateMixin {
     _signupEmailController.dispose();
     _signupPasswordController.dispose();
     _signupConfirmPasswordController.dispose();
+    _forgotPasswordEmailController.dispose();
     super.dispose();
   }
 
@@ -67,12 +66,282 @@ class _HeloState extends State<Helo> with SingleTickerProviderStateMixin {
       _animationController.reverse().then((_) {
         setState(() {
           _isLoginPage = !_isLoginPage;
+          _isForgotPasswordVisible = false;
         });
         _animationController.forward();
       });
     });
   }
-Future<void> _handleLogin() async {
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final user = await _auth.signInWithGoogle();
+      if (!mounted) return;
+      
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen()),
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleForgotPassword() async {
+    if (!_forgotPasswordFormKey.currentState!.validate()) return;
+    
+    setState(() => _isLoading = true);
+    try {
+      await _auth.sendPasswordResetLink(_forgotPasswordEmailController.text.trim());
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password reset link sent to your email'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      setState(() => _isForgotPasswordVisible = false);
+    } catch (error) {
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Widget _buildForgotPasswordDialog() {
+    return Dialog(
+      backgroundColor: AppColorsAuth.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _forgotPasswordFormKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Reset Password',
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                controller: _forgotPasswordEmailController,
+                label: 'Email',
+                hint: 'Enter your email',
+                keyboardType: TextInputType.emailAddress,
+                validator: Validators.email,
+                prefixIcon: Icons.email_outlined,
+              ),
+              const SizedBox(height: 24),
+              CustomButton(
+                text: 'Send Reset Link',
+                onPressed: _handleForgotPassword,
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(color: Color(0xFFAFEB2B)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocialButtons() {
+    return Column(
+      children: [
+        const SizedBox(height: 24),
+        const Text(
+          'Or continue with',
+          style: TextStyle(color: Colors.white70),
+        ),
+        const SizedBox(height: 16),
+        SocialButton(
+          text: 'Sign in with Google',
+          iconPath: 'assets/welcomepageassets/pngwing.com.png', // Make sure to add this asset
+          onPressed: _handleGoogleSignIn,
+          backgroundColor: Colors.white,
+          textColor: Colors.white,
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
+    final containerWidth = screenWidth > 600 ? 400.0 : screenWidth * 0.9;
+    final containerHeight = screenHeight > 800 ? 680.0 : screenHeight * 0.85;
+    final containerPadding = screenWidth > 600 ? 32.0 : 24.0;
+    final titleFontSize = screenWidth > 600 ? 32.0 : 28.0;
+    final subtitleFontSize = screenWidth > 600 ? 16.0 : 14.0;
+
+    return Scaffold(
+      backgroundColor: AppColorsAuth.background,
+      body: Stack(
+        children: [
+          Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(screenWidth > 600 ? 24.0 : 16.0),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: containerWidth,
+                    minHeight: screenHeight * 0.5,
+                  ),
+                  child: Container(
+                    height: containerHeight,
+                    padding: EdgeInsets.all(containerPadding),
+                    decoration: BoxDecoration(
+                      color: AppColorsAuth.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: _isLoginPage
+                          ? _buildLoginPage(
+                              titleSize: titleFontSize,
+                              subtitleSize: subtitleFontSize,
+                              spacing: screenHeight > 800 ? 40.0 : 24.0,
+                            )
+                          : _buildSignupPage(
+                              titleSize: titleFontSize,
+                              subtitleSize: subtitleFontSize,
+                              spacing: screenHeight > 800 ? 32.0 : 20.0,
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (_isLoading)
+            Container(
+              color: Colors.black54,
+              child: Center(
+                child: CircularProgressIndicator(color: AppColors.activeGreen,),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoginPage({
+    required double titleSize,
+    required double subtitleSize,
+    required double spacing,
+  }) {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Form(
+        key: _loginFormKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Welcome Back',
+              style: GoogleFonts.poppins(
+                fontSize: titleSize,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: spacing * 0.3),
+            Text(
+              'Please sign in to continue',
+              style: TextStyle(
+                fontSize: subtitleSize,
+                color: Colors.white.withOpacity(0.7),
+              ),
+            ),
+            SizedBox(height: spacing),
+            CustomTextField(
+              controller: _loginEmailController,
+              label: 'Email',
+              hint: 'Enter your email',
+              keyboardType: TextInputType.emailAddress,
+              validator: Validators.email,
+              prefixIcon: Icons.email_outlined,
+            ),
+            SizedBox(height: spacing * 0.6),
+            CustomTextField(
+              controller: _loginPasswordController,
+              label: 'Password',
+              hint: 'Enter your password',
+              obscureText: true,
+              validator: Validators.password,
+              prefixIcon: Icons.lock_outlined,
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => _buildForgotPasswordDialog(),
+                  );
+                },
+                child: Text(
+                  'Forgot Password?',
+                  style: TextStyle(
+                    color: Color(0xFFAFEB2B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+            CustomButton(
+              text: 'Sign In',
+              onPressed: _handleLogin,
+            ),
+            _buildSocialButtons(),
+            const Spacer(),
+            _buildToggleButton(),
+          ],
+        ),
+      ),
+    );
+  }
+  Future<void> _handleLogin() async {
   if (!_loginFormKey.currentState!.validate()) return;
   
   setState(() => _isLoading = true);
@@ -143,145 +412,6 @@ Future<void> _handleLogin() async {
   }
 
 
-
-  @override
-  Widget build(BuildContext context) {
-    // screen dimensions
-    final screenSize = MediaQuery.of(context).size;
-    final screenWidth = screenSize.width;
-    final screenHeight = screenSize.height;
-
-    // responsive dimensions
-    final containerWidth = screenWidth > 600 ? 400.0 : screenWidth * 0.9;
-    final containerHeight = screenHeight > 800 ? 680.0 : screenHeight * 0.85;
-    final containerPadding = screenWidth > 600 ? 32.0 : 24.0;
-    final titleFontSize = screenWidth > 600 ? 32.0 : 28.0;
-    final subtitleFontSize = screenWidth > 600 ? 16.0 : 14.0;
-
-    return Scaffold(
-      backgroundColor: AppColorsAuth.background,
-      //  scrollable for smaller screens
-      body: Stack(
-        children: [
-          Center(
-            child: SingleChildScrollView(
-              child: Padding(
-                // Responsive padding
-                padding: EdgeInsets.all(screenWidth > 600 ? 24.0 : 16.0),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: containerWidth,
-                    minHeight: screenHeight * 0.5,
-                  ),
-                  child: Container(
-                    height: containerHeight,
-                    padding: EdgeInsets.all(containerPadding),
-                    decoration: BoxDecoration(
-                      color: AppColorsAuth.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 16,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      // Responsive content based on screen size
-                      child: _isLoginPage
-                          ? _buildLoginPage(
-                              titleSize: titleFontSize,
-                              subtitleSize: subtitleFontSize,
-                              spacing: screenHeight > 800 ? 40.0 : 24.0,
-                            )
-                          : _buildSignupPage(
-                              titleSize: titleFontSize,
-                              subtitleSize: subtitleFontSize,
-                              spacing: screenHeight > 800 ? 32.0 : 20.0,
-                            ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          if (_isLoading)
-            Container(
-              color: Colors.black54,
-              child:  Center(
-                child:   Lottie.asset('asset/animation/Animation - 1731642056954.json'),
-              ),
-            )
-        ],
-      ),
-    );
-  }
-
-  //! L O G I N - P A G E
-  Widget _buildLoginPage({
-    required double titleSize,
-    required double subtitleSize,
-    required double spacing,
-  }) {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: Form(
-        key: _loginFormKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Welcome Back',
-              style: GoogleFonts.poppins(
-                fontSize: titleSize,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: spacing * 0.3),
-            Text(
-              'Please sign in to continue',
-              style: TextStyle(
-                fontSize: subtitleSize,
-                color: Colors.white.withOpacity(0.7),
-              ),
-            ),
-            SizedBox(height: spacing),
-            CustomTextField(
-              controller: _loginEmailController,
-              label: 'Email',
-              hint: 'Enter your email',
-              keyboardType: TextInputType.emailAddress,
-              validator: Validators.email,
-              prefixIcon: Icons.email_outlined,
-            ),
-            SizedBox(height: spacing * 0.6),
-            CustomTextField(
-              controller: _loginPasswordController,
-              label: 'Password',
-              hint: 'Enter your password',
-              obscureText: true,
-              validator: Validators.password,
-              prefixIcon: Icons.lock_outlined,
-            ),
-            SizedBox(height: spacing * 0.85),
-            CustomButton(
-              text: 'Sign In',
-              onPressed: _handleLogin,
-            ),
-            SizedBox(height: spacing * 0.85),
-       
-            const SizedBox(height: 1),
-      
-            SizedBox(height: spacing),
-            _buildToggleButton(),
-          ],
-        ),
-      ),
-    );
-  }
 
   //! S I G N U P   P A G E
   Widget _buildSignupPage({
@@ -568,8 +698,8 @@ class CustomButton extends StatelessWidget {
           text,
           style: const TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
           ),
         ),
       ),
@@ -585,17 +715,12 @@ class AppColorsAuth {
   static const error = Color(0xFFCF6679);
   static const success = Color(0xFF4CAF50);
 
-  // Gradient colors
-  static const gradientStart = Color(0xFF6C63FF);
-  static const gradientEnd = Color(0xFF4834DF);
 
-  // Social button colors
-  static const googleButton = Color(0xFFDC4E41);
+
+
 }
 
-// lib/core/theme/app_theme.dart
 
-// lib/widgets/social_button.dart
 
 class SocialButton extends StatelessWidget {
   final String text;
@@ -609,7 +734,7 @@ class SocialButton extends StatelessWidget {
     required this.text,
     required this.iconPath,
     required this.onPressed,
-    this.backgroundColor = Colors.white,
+    this.backgroundColor = AppColorsAuth.inputBackground,
     this.textColor = Colors.black87,
   }) : super(key: key);
 
@@ -620,7 +745,7 @@ class SocialButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
+          backgroundColor: AppColorsAuth.inputBackground,
           foregroundColor: textColor,
           padding: const EdgeInsets.symmetric(vertical: 12),
           shape: RoundedRectangleBorder(
@@ -678,7 +803,7 @@ class LoadingOverlay extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Lottie.asset('asset/animation/Animation - 1731642056954.json'),
+                  CircularProgressIndicator(),
                   if (loadingText != null) ...[
                     const SizedBox(height: 16),
                     Text(

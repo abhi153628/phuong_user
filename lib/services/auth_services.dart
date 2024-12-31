@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class FirebaseAuthServices {
   final _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
    Future<User?> signInWithEmailAndPassword({
     required String email,
@@ -46,6 +47,7 @@ class FirebaseAuthServices {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
+         _googleSignIn.signOut();
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
@@ -107,4 +109,27 @@ class FirebaseAuthServices {
       print('No user is currently logged in.');
     }
   }
+    Future<User?> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential = 
+          await _auth.signInWithCredential(credential);
+      return userCredential.user;
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    } catch (e) {
+      throw 'An error occurred during Google sign in';
+    }
+  }
+
+  // Add sign out method for Google
+
 }

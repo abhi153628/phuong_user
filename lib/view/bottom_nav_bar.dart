@@ -5,11 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:phuong/modal/organizer_profile_modal.dart';
 import 'package:phuong/services/organizer_profile_firebase_service.dart';
-import 'package:phuong/view/chat_section/chat_listing_screen.dart';
+import 'package:phuong/view/chat_section/chat_listing_screen/chat_listing_screen.dart';
 import 'package:phuong/view/homepage/homepage.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
-import 'package:phuong/view/settings/settings_page.dart';
-import 'package:phuong/view/social_feed/widgets/feed_page.dart';
+import 'package:phuong/view/post_feed_page/post_feed_page.dart';
+import 'package:phuong/view/settings_section/settings_page.dart';
+
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -31,14 +32,14 @@ class _MainScreenState extends State<MainScreen> {
   // Constants can remain static
   static const List<String> listOfStrings = [
     'Home',
-    'Search',
+    'Posts',
     'Chat',
     'Account'
   ];
 
   static const List<IconData> listOfIcons = [
     Icons.home_sharp,
-    Icons.search,
+    Icons.image_search,
     Icons.forum,
     Icons.manage_accounts_sharp
    
@@ -50,7 +51,7 @@ class _MainScreenState extends State<MainScreen> {
     // Initialize the stream
     _allPostsStream = _organizerService.fetchAllPosts();
     screens = [
-      const DiscoverScreen(),
+      const Homepage(),
       FeedPage(postsStream: _allPostsStream, ),
       UserChatListScreen(),
 SettingsPage()

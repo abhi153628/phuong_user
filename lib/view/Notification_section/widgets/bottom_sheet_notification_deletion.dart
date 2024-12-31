@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class ConfirmDeleteSheet extends StatelessWidget {
   final VoidCallback onConfirm;
@@ -23,11 +20,11 @@ class ConfirmDeleteSheet extends StatelessWidget {
         color: Colors.black,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         border: Border.all(
-          color: Color(0xFF00FF00).withOpacity(0.2),
+          color: AppColors.activeGreen.withOpacity(0.2),
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF00FF00).withOpacity(0.1),
+            color: AppColors.activeGreen.withOpacity(0.1),
             blurRadius: 20,
             spreadRadius: -5,
           ),
@@ -51,7 +48,7 @@ class ConfirmDeleteSheet extends StatelessWidget {
             style: GoogleFonts.syne(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF00FF00),
+              color: AppColors.activeGreen,
               letterSpacing: 0.5,
             ),
           ),
@@ -110,12 +107,12 @@ class ConfirmDeleteSheet extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
             color: isDelete 
-                ? Color(0xFF00FF00).withOpacity(0.3)
+                ? AppColors.activeGreen.withOpacity(0.3)
                 : Colors.transparent,
           ),
         ),
         color: isDelete 
-            ? Color(0xFF00FF00).withOpacity(0.1)
+            ? AppColors.activeGreen.withOpacity(0.1)
             : Colors.grey[900],
         elevation: 0,
         highlightElevation: 0,
@@ -123,7 +120,7 @@ class ConfirmDeleteSheet extends StatelessWidget {
         child: Text(
           text,
           style: GoogleFonts.syne(
-            color: isDelete ? Color(0xFF00FF00) : Colors.grey[300],
+            color: isDelete ? AppColors.activeGreen : Colors.grey[300],
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),

@@ -68,6 +68,8 @@ dependencies:
   dotted_line: ^3.2.3
   path_provider: ^2.1.5
   qr_flutter: ^4.1.0
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.7
 
 
 
