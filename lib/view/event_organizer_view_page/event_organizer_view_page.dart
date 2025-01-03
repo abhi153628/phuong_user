@@ -94,49 +94,49 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
       ),
     );
   }
-
-  Widget _buildSliverAppBar() {
-    return SliverAppBar(
-      iconTheme: const IconThemeData(color: Colors.white),
-      expandedHeight: 300,
-      pinned: true,
-      backgroundColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        background: LayoutBuilder(
-          builder: (context, constraints) {
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                if (_profile?.imageUrl != null)
-                  Stack(
-                    children: [
-                      ColorFiltered(
+Widget _buildSliverAppBar() {
+  return SliverAppBar(
+    iconTheme: const IconThemeData(color: Colors.white),
+    expandedHeight: 300,
+    pinned: true,
+    backgroundColor: Colors.transparent,
+    flexibleSpace: FlexibleSpaceBar(
+      background: LayoutBuilder(
+        builder: (context, constraints) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              if (_profile?.imageUrl != null)
+                Stack(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      child: ColorFiltered(
                         colorFilter: ColorFilter.mode(
                           Colors.black.withOpacity(0.5),
                           BlendMode.darken,
                         ),
-                        child: Transform.scale(
-                          scale: 2.4,
-                          child: CachedNetworkImage(
-                            imageUrl: _profile!.imageUrl,
-                            fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) => _buildGradientContainer(),
-                          ),
+                        child: CachedNetworkImage(
+                          imageUrl: _profile!.imageUrl,
+                          fit: BoxFit.cover,
+                          errorWidget: (_, __, ___) => _buildGradientContainer(),
                         ),
                       ),
-                      _buildGradientOverlay(),
-                    ],
-                  )
-                else
-                  _buildGradientContainer(),
-                _buildProfileImage(constraints),
-              ],
-            );
-          },
-        ),
+                    ),
+                    _buildGradientOverlay(),
+                  ],
+                )
+              else
+                _buildGradientContainer(),
+              _buildProfileImage(constraints),
+            ],
+          );
+        },
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildGradientContainer() {
     return Container(
@@ -265,8 +265,8 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
                 const SizedBox(height: 24),
                 _buildActionButtons(),
                 const SizedBox(height: 24),
-                _buildStats(),
-                const SizedBox(height: 24),
+                // _buildStats(),
+              //   const SizedBox(height: 24),
               ],
             ),
           );
@@ -341,51 +341,51 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
             ),
           ),
           const SizedBox(width: 16),
-          Expanded(
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.activeGreen),
-                foregroundColor: AppColors.activeGreen,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              onPressed: () {
-                // Follow functionality
-              },
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.person_add, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'Follow',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          // Expanded(
+          //   child: OutlinedButton(
+          //     style: OutlinedButton.styleFrom(
+          //       side: BorderSide(color: AppColors.activeGreen),
+          //       foregroundColor: AppColors.activeGreen,
+          //       padding: const EdgeInsets.symmetric(vertical: 16),
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(20),
+          //       ),
+          //     ),
+          //     onPressed: () {
+          //       // Follow functionality
+          //     },
+          //     child: const Row(
+          //       mainAxisAlignment: MainAxisAlignment.center,
+          //       mainAxisSize: MainAxisSize.min,
+          //       children: [
+          //         Icon(Icons.person_add, size: 20),
+          //         SizedBox(width: 8),
+          //         Text(
+          //           'Follow',
+          //           style: TextStyle(
+          //             fontSize: 16,
+          //             fontWeight: FontWeight.bold,
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     ).animate().fadeIn(duration: 700.ms).slideY(begin: 0.3, end: 0);
   }
 
-  Widget _buildStats() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildStatColumn('Posts', _profile?.posts.length.toString() ?? '0'),
-        _buildStatColumn('Followers', '0'),
-        _buildStatColumn('Following', '0'),
-      ],
-    );
-  }
+  // Widget _buildStats() {
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //     children: [
+  //       _buildStatColumn('Posts', _profile?.posts.length.toString() ?? '0'),
+  //       _buildStatColumn('Followers', '0'),
+  //       _buildStatColumn('Following', '0'),
+  //     ],
+  //   );
+  // }
 
   Widget _buildStatColumn(String label, String count) {
     return Column(

@@ -558,16 +558,18 @@ class EventNameWidget extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 10),
-                Text(
-                  event.location ?? 'Location TBA',
-                  style: GoogleFonts.notoSans(
-                    fontSize: screenWidth * 0.03,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
+               Expanded(  // Add this
+        child: Text(
+          event.location ?? 'Location TBA',
+          style: GoogleFonts.notoSans(
+            fontSize: screenWidth * 0.03,
+            color: Colors.white,
+            fontWeight: FontWeight.w400,
+          ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 2,  // Increased from 1
+        ),
+      ),
               ],
             ),
           ),
