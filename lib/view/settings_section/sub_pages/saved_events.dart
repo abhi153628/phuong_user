@@ -18,7 +18,6 @@ class SavedEventsPage extends StatefulWidget {
 
 class _SavedEventsPageState extends State<SavedEventsPage> {
   final EventService _eventService = EventService();
-  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
   @override

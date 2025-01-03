@@ -4,8 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/modal/user_profile_modal.dart';
+import 'package:phuong/services/auth_services.dart';
 import 'package:phuong/services/user_profile_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
+import 'package:phuong/view/privacy_policy.dart';
 import 'package:phuong/view/settings_section/sub_pages/booked_events_page.dart';
 
 import 'package:phuong/view/event_detail_screen/widgets/ph_no_authentication_botom_sheet.dart';
@@ -14,6 +16,7 @@ import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/settings_section/sub_pages/saved_events.dart';
 import 'package:phuong/view/settings_section/sub_pages/booked_tickets/booked_ticket_lists.dart';
 import 'package:phuong/view/settings_section/sub_pages/liked_post.dart';
+import 'package:phuong/view/welcomepage/welcomes_screen.dart';
 
 
 
@@ -414,15 +417,7 @@ Widget _buildProfileCard() {
 Widget _buildSettingsOptions() {
     return Column(
       children: [
-        _buildSettingsTile(
-          icon: Icons.notifications_outlined,
-          title: 'Notifications',
-          trailing: Switch(
-            value: true,
-            onChanged: (value) {},
-            activeColor: AppColors.activeGreen,
-          ),
-        ),
+       
         _buildSettingsTile(
           icon: Icons.library_music,
           title: 'Booked Events',
@@ -456,6 +451,12 @@ Widget _buildSettingsOptions() {
             }
           },
         ),
+          _buildSettingsTile(
+          icon: Icons.favorite_outline,
+          title: 'Privacy Plicy',
+          onTap: () => Navigator.of(context)
+              .push(GentlePageTransition(page: PrivacyPolicyScreen())),
+        ),
       ],
     );
   }
@@ -482,34 +483,221 @@ Widget _buildSettingsOptions() {
     );
   }
 
-  // Sign Out Button
-  Widget _buildSignOutButton() {
-    return Center(
-      child: ElevatedButton(
-        onPressed: () async {
-          await FirebaseAuth.instance.signOut();
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => Homepage()),
-          );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.grey[900],
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: Text(
-          'Sign Out',
-          style: GoogleFonts.syne(
-            color: AppColors.activeGreen,
-            fontSize: 16,
-          ),
+Widget _buildSignOutButton() {
+  return Center(
+    child: ElevatedButton(
+      onPressed: () {
+        // Show confirmation dialog first
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.grey[900],
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.activeGreen.withOpacity(0.3),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.activeGreen.withOpacity(0.1),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Icon
+                    Icon(
+                      Icons.logout_rounded,
+                      size: 48,
+                      color: AppColors.activeGreen,
+                    ),
+                    const SizedBox(height: 20),
+                    // Title
+                    Text(
+                      'Sign Out',
+                      style: GoogleFonts.syne(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Message
+                    Text(
+                      'Are you sure you want to sign out?\nYou\'ll need to sign in again to access your account.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.notoSans(
+                        fontSize: 16,
+                        color: Colors.grey[400],
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Cancel Button
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Cancel',
+                              style: GoogleFonts.syne(
+                                fontSize: 16,
+                                color: Colors.grey[400],
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        // Confirm Button
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              // Close confirmation dialog
+                              Navigator.pop(context);
+                              
+                              // Show loading indicator
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (BuildContext context) {
+                                  return Dialog(
+                                    backgroundColor: Colors.transparent,
+                                    elevation: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black87,
+                                        borderRadius: BorderRadius.circular(15),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.activeGreen.withOpacity(0.3),
+                                            blurRadius: 10,
+                                            spreadRadius: 2,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const CircularProgressIndicator(
+                                            color: AppColors.activeGreen,
+                                          ),
+                                          const SizedBox(height: 20),
+                                          Text(
+                                            'Signing you out...',
+                                            style: GoogleFonts.notoSans(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+
+                              try {
+                                // Perform sign out
+                                final authService = FirebaseAuthServices();
+                                await authService.signOut();
+
+                                // Close loading dialog
+                                if (Navigator.canPop(context)) {
+                                  Navigator.pop(context);
+                                }
+
+                                // Navigate to welcome screen
+                                await Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                    builder: (context) => const WelcomesScreen(),
+                                  ),
+                                  (route) => false,
+                                );
+                              } catch (e) {
+                                // Close loading dialog if open
+                                if (Navigator.canPop(context)) {
+                                  Navigator.pop(context);
+                                }
+
+                                // Show error message
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Failed to sign out: ${e.toString()}',
+                                      style: GoogleFonts.notoSans(),
+                                    ),
+                                    backgroundColor: Colors.red,
+                                    behavior: SnackBarBehavior.floating,
+                                    margin: const EdgeInsets.all(16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.activeGreen,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Sign Out',
+                              style: GoogleFonts.syne(
+                                fontSize: 16,
+                                color: Colors.black,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.grey[900],
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
-    );
-  }
-
+      child: Text(
+        'Sign Out',
+        style: GoogleFonts.syne(
+          color: AppColors.activeGreen,
+          fontSize: 16,
+        ),
+      ),
+    ),
+  );
+}
   // Modified Bottom Sheet
   void _showEditProfileBottomSheet() {
     showModalBottomSheet(

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:phuong/modal/organizer_profile_modal.dart';
+
 
 abstract class FeedEvent extends Equatable {
   @override

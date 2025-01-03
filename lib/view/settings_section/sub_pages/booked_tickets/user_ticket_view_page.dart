@@ -1,17 +1,12 @@
 import 'dart:typed_data';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:dotted_line/dotted_line.dart';
 import 'package:intl/intl.dart';
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/booking_modal.dart';
 import 'package:phuong/modal/event_modal.dart';
-import 'package:phuong/modal/user_profile_modal.dart';
-import 'package:phuong/services/user_profile_firebase_service.dart';
-import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
@@ -22,7 +17,6 @@ class EventTicketScreen extends StatelessWidget {
   final BookingModel booking;
   final EventModel event;
   final GlobalKey _globalKey = GlobalKey();
-  final UserProfileService _userProfileService = UserProfileService();
 
   EventTicketScreen({
     Key? key,
@@ -47,24 +41,22 @@ class EventTicketScreen extends StatelessWidget {
       ByteData? byteData =
           await image.toByteData(format: ui.ImageByteFormat.png);
 
-      if (byteData != null) {
-        // Convert to bytes
-        Uint8List pngBytes = byteData.buffer.asUint8List();
+      // Convert to bytes
+      Uint8List pngBytes = byteData!.buffer.asUint8List();
 
-        // Get temporary directory
-        final tempDir = await getTemporaryDirectory();
-        final file = File('${tempDir.path}/ticket.png');
+      // Get temporary directory
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/ticket.png');
 
-        // Write file
-        await file.writeAsBytes(pngBytes);
+      // Write file
+      await file.writeAsBytes(pngBytes);
 
-        // Share file
-        await Share.shareXFiles(
-          [XFile(file.path)],
-          text: 'My Event Ticket for ${booking.eventName}',
-        );
-      }
-    } catch (e) {
+      // Share file
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'My Event Ticket for ${booking.eventName}',
+      );
+        } catch (e) {
       debugPrint('Error sharing ticket: $e');
       // Show error message to user
       ScaffoldMessenger.of(_globalKey.currentContext!).showSnackBar(
@@ -382,29 +374,6 @@ class EventTicketScreen extends StatelessWidget {
      ) );
   }
 
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Icon(icon, color: Colors.grey[600]),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: GoogleFonts.notoSans(
-              color: Colors.grey[600],
-              fontSize: 12,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildPriceRow(String label, String amount, {bool isTotal = false}) {
     return Padding(

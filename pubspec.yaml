@@ -70,20 +70,26 @@ dependencies:
   qr_flutter: ^4.1.0
   flutter_bloc: ^8.1.6
   equatable: ^2.0.7
-
-
-
  
-  
- 
-
-  
   
   
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.2  # First entry is for package dependency
+
+# This should be at the same level as dev_dependencies, not inside it
+flutter_launcher_icons:  # Separate configuration section
+  android: true 
+  ios: true
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "#FF000000"
+  adaptive_icon_foreground: "assets/icon/icon.png"
+  remove_alpha_ios: true 
+  adaptive_icon_foreground_scale_factor: 0.9
+
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -107,6 +113,7 @@ flutter:
     - assets/welcomepageassets/
   
     - assets/animations/
+   
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

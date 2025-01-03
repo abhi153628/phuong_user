@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phuong/modal/event_modal.dart';
-import 'package:phuong/services/event_fetching_firebase_service.dart';
+
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/event_detail_screen/widgets/fields_event_details_widget.dart';
 

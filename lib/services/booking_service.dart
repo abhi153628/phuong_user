@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:phuong/modal/booking_modal.dart';
 import 'package:phuong/modal/event_modal.dart';
-import 'package:phuong/modal/user_profile_modal.dart';
+
 import 'package:phuong/services/auth_services.dart';
 import 'package:phuong/services/user_profile_firebase_service.dart';
 

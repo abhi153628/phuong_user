@@ -54,7 +54,7 @@ class _TapTooltipState extends State<TapTooltip> {
       ),
     );
 
-    overlay?.insert(_overlayEntry!);
+    overlay.insert(_overlayEntry!);
 
     Future.delayed(widget.displayDuration, () => _hideTooltip());
   }

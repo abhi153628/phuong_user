@@ -6,7 +6,7 @@ import 'package:phuong/modal/booking_modal.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/services/booking_service.dart';
 import 'package:phuong/services/event_fetching_firebase_service.dart';
-import 'package:phuong/view/event_detail_screen/widgets/fields_event_details_widget.dart';
+
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/settings_section/sub_pages/booked_tickets/user_ticket_view_page.dart';
 
@@ -279,24 +279,6 @@ Widget _buildBookingCard(BookingModel booking) {
      ) ).animate().shimmer(duration: 1500.ms);
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: Colors.white.withOpacity(0.7)),
-          SizedBox(width: 8),
-          Text(
-            text,
-            style: GoogleFonts.notoSans(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.8),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildLoadingState() {
     return Shimmer.fromColors(

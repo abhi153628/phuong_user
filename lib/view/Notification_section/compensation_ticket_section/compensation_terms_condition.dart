@@ -22,7 +22,6 @@ class TermsDialog extends StatefulWidget {
 class _TermsDialogState extends State<TermsDialog> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
-  bool _hasScrolled = false;
 
   @override
   void initState() {
@@ -95,7 +94,6 @@ class _TermsDialogState extends State<TermsDialog> with SingleTickerProviderStat
                     if (scrollNotification is ScrollEndNotification) {
                       if (scrollNotification.metrics.pixels >=
                           scrollNotification.metrics.maxScrollExtent * 0.9) {
-                        setState(() => _hasScrolled = true);
                       }
                     }
                     return true;

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:meta/meta.dart';
+
 import 'package:phuong/modal/organizer_profile_modal.dart';
 import 'package:phuong/services/likes_services.dart';
 import 'package:phuong/services/organizer_profile_firebase_service.dart';

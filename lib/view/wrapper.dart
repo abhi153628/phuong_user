@@ -5,6 +5,7 @@ import 'package:phuong/services/auth_services.dart';
 
 import 'package:phuong/view/auth_screens/auth_screen.dart';
 import 'package:phuong/view/bottom_nav_bar.dart';
+import 'package:phuong/view/welcomepage/welcomes_screen.dart';
 
 
 
@@ -70,7 +71,7 @@ Widget build(BuildContext context) {
         
         return const MainScreen();
       } else {
-        return const Helo();
+        return const WelcomesScreen();
       }
     },
   );

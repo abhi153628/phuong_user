@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:phuong/modal/event_modal.dart';
-import 'package:phuong/modal/user_profile_modal.dart';
+
 import 'package:phuong/services/user_profile_firebase_service.dart';
-import 'package:phuong/utils/cstm_transition.dart';
-import 'package:phuong/view/event_detail_screen/widgets/seat_availibility_bottom_sheet.dart';
-import 'package:phuong/view/homepage/homepage.dart';
+
 import 'package:phuong/view/homepage/widgets/colors.dart';
 
 // Move enum to top-level
@@ -35,8 +33,6 @@ class _PhoneAuthBottomSheetState extends State<PhoneAuthBottomSheet> {
   final TextEditingController _otpController = TextEditingController();
   
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  String? _verificationId;
-  int? _resendToken;
   
   AuthenticationState _currentState = AuthenticationState.phoneInput;
   String? _errorMessage;
@@ -69,14 +65,11 @@ class _PhoneAuthBottomSheetState extends State<PhoneAuthBottomSheet> {
         },
         codeSent: (String verificationId, int? resendToken) {
           setState(() {
-            _verificationId = verificationId;
-            _resendToken = resendToken;
             _currentState = AuthenticationState.otpInput;
           });
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           setState(() {
-            _verificationId = verificationId;
           });
         },
         timeout: const Duration(minutes: 2),

@@ -1,7 +1,7 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:permission_handler/permission_handler.dart';
+ 
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/modal/user_profile_modal.dart';
@@ -29,7 +29,6 @@ class _HomepageState extends State<Homepage>
   final UserProfileService _userProfileService = UserProfileService();
   String? _userCurrentLocation;
   int _selectedCategory = 0;
-  bool _isInitialLoad = true;
   final List<String> categories = [
     'My feed',
     'Rock',

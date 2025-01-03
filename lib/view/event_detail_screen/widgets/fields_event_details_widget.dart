@@ -1,15 +1,15 @@
 import 'dart:developer';
-import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phuong/constants/colors.dart';
-import 'package:phuong/modal/booking_modal.dart';
+
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/services/event_fetching_firebase_service.dart';
 import 'package:phuong/services/user_profile_firebase_service.dart';
 import 'package:phuong/view/event_detail_screen/widgets/event_terms_condition_widget.dart';
-import 'package:phuong/view/event_detail_screen/widgets/ph_no_authentication_botom_sheet.dart';
+
 import 'package:phuong/view/event_detail_screen/widgets/seat_availibility_bottom_sheet.dart';
 import 'package:phuong/view/event_organizer_view_page/event_organizer_view_page.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
@@ -260,7 +260,7 @@ class EventDetailsPage extends StatelessWidget {
       ),
       child: ElevatedButton(
         onPressed: () {
-          // TODO: Navigation to payment page
+       
           HapticFeedback.lightImpact();
    _showBookingBottomSheet(context,event);
          
@@ -632,44 +632,6 @@ class EventNameWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String title,
-    required String content,
-  }) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(icon, size: 24, color: Colors.blue),
-            const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                Text(
-                  content,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildPriceContainer() {
     if (event.ticketPrice == null) return SizedBox.shrink();

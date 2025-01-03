@@ -1,7 +1,7 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:phuong/utils/cstm_transition.dart';
+
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/search_screen/search_page.dart';
 

@@ -34,13 +34,11 @@ class _UserChatScreenState extends State<UserChatScreen> with SingleTickerProvid
   
   String? _chatRoomId;
   bool _isTyping = false;
-    late OrganizerProfile _organizerProfile;
 
   @override
   void initState() {
     super.initState();
      if (widget.organizerProfile != null) {
-    _organizerProfile = widget.organizerProfile!;
   } else {
     _fetchOrganizerProfile();
   }
@@ -54,7 +52,6 @@ Future<void> _fetchOrganizerProfile() async {
     final profile = await _profileService.fetchOrganizerProfile(widget.organizerId);
     if (profile != null) {
       setState(() {
-        _organizerProfile = profile;
       });
     } else {
       // Handle case where profile can't be fetched
@@ -587,42 +584,10 @@ Widget _buildMessageTextField() {
     );
   }
 
-  void _showAttachmentOptions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Colors.grey[900],
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.image, color: AppColors.activeGreen),
-              title: Text('Gallery', style: GoogleFonts.notoSans()),
-              onTap: () {
-                // Implement gallery attachment
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.camera_alt, color: AppColors.activeGreen),
-              title: Text('Camera', style: GoogleFonts.notoSans()),
-              onTap: () {
-                // Implement camera attachment
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   void dispose() {
+    super.dispose();
     _messageController.dispose();
     _animationController.dispose();
     _scrollController.dispose();}}

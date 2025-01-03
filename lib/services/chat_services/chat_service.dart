@@ -38,7 +38,7 @@ class ChatService {
     final chatRoomRef = await _firestore.collection('chatRooms').add({
       'userId': currentUser.uid,
       'organizerId': organizerId,
-      'senderName': currentUserName ?? 'User',  
+      'senderName': currentUserName,  
       'lastMessageTimestamp': Timestamp.now(),
       'lastMessage': 'Chat started',
       'createdAt': FieldValue.serverTimestamp(),
@@ -70,7 +70,7 @@ class ChatService {
       final message = ChatMessage(
         id: '', //! Firestore will generate ID
         senderId: currentUser.uid,
-        senderName: curentUserName ?? 'User',
+        senderName: curentUserName,
         receiverId: receiverId,
         content: content,
         timestamp: Timestamp.now(),

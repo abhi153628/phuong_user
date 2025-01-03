@@ -32,7 +32,6 @@ class _HeloState extends State<Helo> with SingleTickerProviderStateMixin {
 
   bool _isLoginPage = true;
   bool _isLoading = false;
-  bool _isForgotPasswordVisible = false;
 
   @override
   void initState() {
@@ -66,7 +65,6 @@ class _HeloState extends State<Helo> with SingleTickerProviderStateMixin {
       _animationController.reverse().then((_) {
         setState(() {
           _isLoginPage = !_isLoginPage;
-          _isForgotPasswordVisible = false;
         });
         _animationController.forward();
       });
@@ -113,7 +111,6 @@ class _HeloState extends State<Helo> with SingleTickerProviderStateMixin {
           backgroundColor: Colors.green,
         ),
       );
-      setState(() => _isForgotPasswordVisible = false);
     } catch (error) {
       if (!mounted) return;
       

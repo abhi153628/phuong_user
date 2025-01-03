@@ -68,7 +68,7 @@ class UserProfileService {
       };
 
       // Only update fields that are not null in the userProfile
-      if (userProfile.name != null && userProfile.name!.isNotEmpty) {
+      if (userProfile.name.isNotEmpty) {
         updateData['name'] = userProfile.name;
       }
       if (userProfile.latitude != null) {

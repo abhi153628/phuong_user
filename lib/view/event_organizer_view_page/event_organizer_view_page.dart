@@ -23,7 +23,6 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
     with SingleTickerProviderStateMixin {
   late final UserOrganizerProfileService _profileService;
   late final AnimationController _animationController;
-  late final Animation<double> _fadeAnimation;
 
   OrganizerProfile? _profile;
   bool _isLoading = true;
@@ -35,9 +34,6 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
     _fetchOrganizerProfile();
   }
@@ -198,7 +194,7 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
             borderRadius: BorderRadius.circular(25),
             child: _profile?.imageUrl != null
                 ? CachedNetworkImage(
-                    imageUrl: _profile!.imageUrl!,
+                    imageUrl: _profile!.imageUrl,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Center(
                       child: CircularProgressIndicator(
@@ -252,7 +248,7 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
                 if (_profile?.bio != null) ...[
                   const SizedBox(height: 16),
                   Text(
-                    _profile!.bio!,
+                    _profile!.bio,
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.8),
                       fontSize: 16,
@@ -384,7 +380,7 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildStatColumn('Posts', _profile?.posts?.length.toString() ?? '0'),
+        _buildStatColumn('Posts', _profile?.posts.length.toString() ?? '0'),
         _buildStatColumn('Followers', '0'),
         _buildStatColumn('Following', '0'),
       ],
@@ -417,7 +413,7 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
   }
 
   Widget _buildPostsGrid() {
-    if (_profile?.posts == null || _profile!.posts!.isEmpty) {
+    if (_profile?.posts == null || _profile!.posts.isEmpty) {
       return const SliverToBoxAdapter(
         child: Center(
           child: Padding(
@@ -445,10 +441,10 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) {
-            final post = _profile!.posts![index];
+            final post = _profile!.posts[index];
             return _PostThumbnail(post: post);
           },
-          childCount: _profile!.posts!.length,
+          childCount: _profile!.posts.length,
         ),
       ),
     );
