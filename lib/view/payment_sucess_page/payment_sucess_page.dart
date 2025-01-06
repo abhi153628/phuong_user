@@ -3,8 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phuong/constants/colors.dart';
+import 'package:phuong/modal/booking_modal.dart';
 import 'package:phuong/modal/event_modal.dart';
+import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
+import 'package:phuong/view/settings_section/sub_pages/booked_tickets/user_ticket_view_page.dart';
 import 'package:share_plus/share_plus.dart';
 
 class MinimalistSuccessPage extends StatefulWidget {
@@ -235,11 +238,33 @@ class _MinimalistSuccessPageState extends State<MinimalistSuccessPage>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildActionButton(
-                      icon: Icons.confirmation_number_outlined,
-                      label: 'View Ticket',
-                      onPressed: _showTicketDetails,
-                    ),
+                   _buildActionButton(
+  icon: Icons.confirmation_number_outlined,
+  label: 'View Ticket',
+  onPressed: () {
+    // Create a BookingModel instance with all required data
+    final booking = BookingModel(
+      bookingId: widget.transactionId, // Using transactionId as bookingId
+      eventId: widget.event.eventId!,
+      userId: widget.event.organizerId!, // You might want to get this from your auth service
+      userName: widget.event.organizerName ?? 'Unknown User',
+      seatsBooked: widget.selectedSeats,
+      totalPrice: widget.totalPrice,
+      bookingTime: widget.dateTime,
+      eventName: widget.event.eventName!,
+      organizerId: widget.event.organizerId!,
+    );
+
+    Navigator.of(context).push(
+      GentlePageTransition(
+        page: EventTicketScreen(
+          booking: booking,
+          event: widget.event,
+        ),
+      ),
+    );
+  },
+),
                     const SizedBox(width: 30),
                     _buildActionButton(
                       icon: Icons.share_outlined,

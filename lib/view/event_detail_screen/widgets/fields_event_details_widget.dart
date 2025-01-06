@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -337,32 +338,57 @@ class MainContentWidget extends StatelessWidget {
 
 
 
-  Widget _buildGradientContainer() {
-    return Container(
-      height: screenWidth * 0.99,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.purple.withOpacity(0.8),
-            Colors.blue.withOpacity(0.6),
-          ],
-        ),
-        image: event.imageUrl != null
-            ? DecorationImage(
-                image: NetworkImage(event.imageUrl!),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.3),
-                  BlendMode.darken,
+Widget _buildGradientContainer() {
+  return Container(
+    height: screenWidth * 0.99,
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Stack(
+        children: [
+          // Gradient background that shows during loading
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.purple.withOpacity(0.8),
+                  Colors.blue.withOpacity(0.6),
+                ],
+              ),
+            ),
+          ),
+          // CachedNetworkImage with overlay
+          if (event.imageUrl != null)
+            CachedNetworkImage(
+              imageUrl: event.imageUrl!,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+              placeholder: (context, url) => Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white.withOpacity(0.5),
                 ),
-              )
-            : null,
+              ),
+              errorWidget: (context, url, error) => Center(
+                child: Icon(
+                  Icons.error_outline,
+                  color: Colors.white.withOpacity(0.5),
+                  size: 32,
+                ),
+              ),
+            ),
+          // Darkening overlay
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.3),
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
   String getBookingStatus(DateTime? eventDate) {
   if (eventDate == null) return 'Date TBA';
   
@@ -558,7 +584,7 @@ class EventNameWidget extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 10),
-               Expanded(  // Add this
+               Expanded(  
         child: Text(
           event.location ?? 'Location TBA',
           style: GoogleFonts.notoSans(
@@ -567,7 +593,7 @@ class EventNameWidget extends StatelessWidget {
             fontWeight: FontWeight.w400,
           ),
           overflow: TextOverflow.ellipsis,
-          maxLines: 2,  // Increased from 1
+          maxLines: 2,  
         ),
       ),
               ],
@@ -604,7 +630,7 @@ class EventNameWidget extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => UserOrganizerProfileScreen(
+                            builder: (context) => OrganizerProfileViewScreen(
                               organizerId: event.organizerId!,
                             ),
                           ),

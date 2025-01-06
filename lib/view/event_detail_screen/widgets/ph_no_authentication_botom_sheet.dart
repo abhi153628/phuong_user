@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phuong/modal/event_modal.dart';
 
 import 'package:phuong/services/user_profile_firebase_service.dart';
@@ -127,9 +128,7 @@ class _PhoneAuthBottomSheetState extends State<PhoneAuthBottomSheet> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircularProgressIndicator(
-                      color: AppColors.activeGreen,
-                    ),
+                   Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170),
                     const SizedBox(height: 20),
                     Text(
                       'Loading booking details...',
@@ -416,9 +415,7 @@ void _resendOTP() {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(
-            color: AppColors.activeGreen,
-          ),
+          Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170),
           const SizedBox(height: 20),
           Text(
             'Verifying...',

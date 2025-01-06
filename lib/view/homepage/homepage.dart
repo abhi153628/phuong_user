@@ -1,7 +1,8 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
- 
+import 'package:lottie/lottie.dart';
+
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/modal/user_profile_modal.dart';
@@ -276,17 +277,8 @@ class _HomepageState extends State<Homepage>
                           _buildCategories(),
                           const SizedBox(height: 15),
                           if (!_isSearchBarSticky)
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => EventSearchScreen(),
-                                  ),
-                                );
-                              },
-                              child: SearchBarHomeScreen(),
-                            ),
+                            if (!_isSearchBarSticky)
+                              const SearchBarHomeScreen(), // Remove the GestureDetector here since it's handled within the SearchBarHomeScreen
                         ],
                       ),
                     ),
@@ -300,7 +292,7 @@ class _HomepageState extends State<Homepage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(left: 20),
+                        padding: const EdgeInsets.only(left: 20, top: 15),
                         child: Text(
                           'Upcoming Events',
                           style: GoogleFonts.syne(
@@ -327,7 +319,11 @@ class _HomepageState extends State<Homepage>
 
                       // Loading or No Events Handling
                       _isLoading
-                          ? const Center(child: CircularProgressIndicator())
+                          ? Center(
+                              child: Lottie.asset(
+                                  'assets/animations/Animation - 1736144056346.json',
+                                  height: 170,
+                                  width: 170))
                           : _filteredEvents.isEmpty
                               ? Center(
                                   child: Text(
@@ -345,7 +341,7 @@ class _HomepageState extends State<Homepage>
                                   children: _filteredEvents.map((event) {
                                     return Column(
                                       children: [
-                                        HomeEventCard(event: event),
+                                        HomeEventCard(event: event,),
                                         const SizedBox(height: 20),
                                       ],
                                     );
@@ -391,9 +387,11 @@ class _HomepageState extends State<Homepage>
 
   Widget _buildHeader() {
     return Padding(
-      padding: EdgeInsets.all(15),
+      padding:
+          EdgeInsets.only(top: 40, left: 15, right: 15), // Added right padding
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment:
+            MainAxisAlignment.spaceBetween, // Changed to spaceBetween
         children: [
           Text('Discover',
               style: GoogleFonts.syne(
@@ -401,36 +399,32 @@ class _HomepageState extends State<Homepage>
                   fontSize: 29,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.2)),
-          Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 1,
-                      color: white,
-                    ),
-                    borderRadius: BorderRadius.circular(25)),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.wifi_tethering,
-                        color: AppColors.white,
-                      ),
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.notifications_none,
-                          color: AppColors.white),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                            GentlePageTransition(page: NotificationPage()));
-                      },
-                    ),
-                  ],
+          Container(
+            decoration: BoxDecoration(
+                border: Border.all(
+                  width: 1,
+                  color: white,
                 ),
-              ),
-            ],
+                borderRadius: BorderRadius.circular(25)),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.wifi_tethering,
+                    color: AppColors.white,
+                  ),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(Icons.notifications_none,
+                      color: AppColors.white),
+                  onPressed: () {
+                    Navigator.of(context)
+                        .push(GentlePageTransition(page: NotificationPage()));
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),

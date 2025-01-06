@@ -2,42 +2,56 @@ import 'package:equatable/equatable.dart';
 import 'package:phuong/modal/organizer_profile_modal.dart';
 
 abstract class FeedState extends Equatable {
+  final List<Post> posts;
+  final List<OrganizerProfile> organizers;
+  final bool isInitialLoad;
+  final String? error;
+
+  const FeedState({
+    this.posts = const [],
+    this.organizers = const [],
+    this.isInitialLoad = true,
+    this.error,
+  });
+
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [posts, organizers, isInitialLoad, error];
 }
 
 class FeedInitial extends FeedState {}
 
-class FeedLoading extends FeedState {}
+class FeedLoading extends FeedState {
+  const FeedLoading({
+    required bool isInitialLoad,
+    List<Post> currentPosts = const [],
+    List<OrganizerProfile> currentOrganizers = const [],
+  }) : super(
+          posts: currentPosts,
+          organizers: currentOrganizers,
+          isInitialLoad: isInitialLoad,
+        );
+}
 
 class FeedLoaded extends FeedState {
-  final List<Post> posts;
-  final List<OrganizerProfile> organizers;
-
-  FeedLoaded({
-    required this.posts,
-    required this.organizers,
-  });
-
-  @override
-  List<Object?> get props => [posts, organizers];
+  const FeedLoaded({
+    required List<Post> posts,
+    required List<OrganizerProfile> organizers,
+  }) : super(
+          posts: posts,
+          organizers: organizers,
+          isInitialLoad: false,
+        );
 }
 
 class FeedError extends FeedState {
-  final String message;
-
-  FeedError(this.message);
-
-  @override
-  List<Object?> get props => [message];
-}
-
-class PostLikeUpdated extends FeedState {
-  final String postId;
-  final bool isLiked;
-
-  PostLikeUpdated({required this.postId, required this.isLiked});
-
-  @override
-  List<Object?> get props => [postId, isLiked];
+  const FeedError({
+    required String error,
+    List<Post> currentPosts = const [],
+    List<OrganizerProfile> currentOrganizers = const [],
+  }) : super(
+          error: error,
+          posts: currentPosts,
+          organizers: currentOrganizers,
+          isInitialLoad: false,
+        );
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/services/event_fetching_firebase_service.dart';
 import 'package:phuong/view/event_detail_screen/widgets/fields_event_details_widget.dart';
@@ -59,7 +60,7 @@ class _SavedEventsPageState extends State<SavedEventsPage> {
             style: GoogleFonts.syne(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: AppColors.activeGreen,
+              color: white
             ),
           ),
         ],

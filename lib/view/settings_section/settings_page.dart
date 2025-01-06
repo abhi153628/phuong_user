@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/modal/user_profile_modal.dart';
 import 'package:phuong/services/auth_services.dart';
@@ -186,9 +187,7 @@ void _showUpdatePhoneBottomSheet() {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(
-                    color: AppColors.activeGreen,
-                  ),
+                Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170),
                   const SizedBox(height: 20),
                   Text(
                     'Updating Profile...',
@@ -264,26 +263,32 @@ void _showUpdatePhoneBottomSheet() {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final screenWidth = mediaQuery.size.width;
+    final padding = mediaQuery.padding;
+    
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         child: _isLoading
             ? Center(
-                child: CircularProgressIndicator(color: AppColors.activeGreen),
+                child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170),
               )
-            : SingleChildScrollView( // Wrap with SingleChildScrollView to prevent overflow
-                child: Padding(
+            : SingleChildScrollView(
+                child: Container(
+                  constraints: BoxConstraints(
+                    minHeight: screenHeight - padding.top - padding.bottom,
+                  ),
+                  width: screenWidth,
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Profile Card
                       _buildProfileCard(),
                       const SizedBox(height: 30),
-                      // Settings Options
                       _buildSettingsOptions(),
                       const SizedBox(height: 40),
-                      // Sign Out Button
                       _buildSignOutButton(),
                       const SizedBox(height: 20),
                     ],
@@ -292,87 +297,82 @@ void _showUpdatePhoneBottomSheet() {
               ),
       ),
     );
-  }
-Widget _buildProfileCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.activeGreen.withOpacity(0.2),
-            blurRadius: 10,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // User Avatar and Name Row
-          Row(
-            children: [
-              // Avatar
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: AppColors.activeGreen,
-                child: Text(
-                  _userName.isNotEmpty ? _userName[0].toUpperCase() : '?',
-                  style: GoogleFonts.syne(
-                    color: Colors.black,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 15),
-              // User Name with Animation
-              Expanded(
-                child: AnimatedTextKit(
-                  key: ValueKey(_userName),
-                  animatedTexts: [
-                    TypewriterAnimatedText(
-                      _userName,
-                      textStyle: GoogleFonts.syne(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      speed: const Duration(milliseconds: 200),
-                    ),
-                  ],
-                  totalRepeatCount: 1,
-                  isRepeatingAnimation: false,
-                ),
-              ),
-              // Edit Profile Button
-              IconButton(
-                onPressed: _showEditProfileBottomSheet,
-                icon: const Icon(Icons.edit, color: AppColors.grey),
+  } Widget _buildProfileCard() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          width: constraints.maxWidth,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.grey[900],
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.activeGreen.withOpacity(0.2),
+                blurRadius: 10,
+                spreadRadius: 1,
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          
-          // Location Information
-          _buildInfoRow(
-            Icons.location_on_outlined,
-            'Location',
-            _currentAddress ?? 'Location not set',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: AppColors.activeGreen,
+                    child: Text(
+                      _userName.isNotEmpty ? _userName[0].toUpperCase() : '?',
+                      style: GoogleFonts.syne(
+                        color: Colors.black,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: AnimatedTextKit(
+                      key: ValueKey(_userName),
+                      animatedTexts: [
+                        TypewriterAnimatedText(
+                          _userName,
+                          textStyle: GoogleFonts.syne(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          speed: const Duration(milliseconds: 200),
+                        ),
+                      ],
+                      totalRepeatCount: 1,
+                      isRepeatingAnimation: false,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _showEditProfileBottomSheet,
+                    icon: const Icon(Icons.edit, color: AppColors.grey),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _buildInfoRow(
+                Icons.location_on_outlined,
+                'Location',
+                _currentAddress ?? 'Location not set',
+              ),
+              const SizedBox(height: 15),
+              _buildInfoRow(
+                Icons.phone_outlined,
+                'Phone',
+                _userPhone ?? 'Phone not set',
+                onEdit: _showUpdatePhoneBottomSheet,
+              ),
+            ],
           ),
-          
-          const SizedBox(height: 15),
-          
-          // Phone Information
-          _buildInfoRow(
-            Icons.phone_outlined,
-            'Phone',
-            _userPhone ?? 'Phone not set',
-            onEdit: _showUpdatePhoneBottomSheet,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -452,7 +452,7 @@ Widget _buildSettingsOptions() {
           },
         ),
           _buildSettingsTile(
-          icon: Icons.favorite_outline,
+          icon: Icons.verified_user,
           title: 'Privacy Plicy',
           onTap: () => Navigator.of(context)
               .push(GentlePageTransition(page: PrivacyPolicyScreen())),
@@ -597,9 +597,7 @@ Widget _buildSignOutButton() {
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const CircularProgressIndicator(
-                                            color: AppColors.activeGreen,
-                                          ),
+                                           Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170),
                                           const SizedBox(height: 20),
                                           Text(
                                             'Signing you out...',
@@ -699,74 +697,87 @@ Widget _buildSignOutButton() {
   );
 }
   // Modified Bottom Sheet
-  void _showEditProfileBottomSheet() {
+    void _showEditProfileBottomSheet() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: SingleChildScrollView( // Wrap with SingleChildScrollView
-            child: Container(
-              margin: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.activeGreen.withOpacity(0.5),
-                    blurRadius: 15,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Text(
-                        'Edit Profile',
-                        style: GoogleFonts.syne(
-                          color: AppColors.activeGreen,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+        builder: (context, setModalState) {
+          final mediaQuery = MediaQuery.of(context);
+          final bottomPadding = mediaQuery.viewInsets.bottom;
+          final availableHeight = mediaQuery.size.height - bottomPadding;
+
+          return Container(
+            constraints: BoxConstraints(
+              maxHeight: availableHeight * 0.9,
+              minHeight: availableHeight * 0.4,
+            ),
+            margin: EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              bottomPadding + 16,
+            ),
+            child: SingleChildScrollView(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.activeGreen.withOpacity(0.5),
+                      blurRadius: 15,
+                      spreadRadius: 2,
                     ),
-                    const SizedBox(height: 20),
-                    // Name TextField
-                    TextField(
-                      controller: _nameController,
-                      style: GoogleFonts.notoSans(color: Colors.white),
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.grey[900],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        hintText: 'Enter your name',
-                        hintStyle: GoogleFonts.notoSans(color: Colors.grey),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    // Location Section
-                    _buildLocationSection(setModalState),
-                    const SizedBox(height: 20),
-                    // Action Buttons
-                    _buildActionButtons(context),
                   ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Text(
+                          'Edit Profile',
+                          style: GoogleFonts.syne(
+                            color: AppColors.activeGreen,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      TextField(
+                        controller: _nameController,
+                        style: GoogleFonts.notoSans(color: Colors.white),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.grey[900],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          hintText: 'Enter your name',
+                          hintStyle: GoogleFonts.notoSans(color: Colors.grey),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildLocationSection(setModalState),
+                      const SizedBox(height: 20),
+                      _buildActionButtons(context),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -814,10 +825,7 @@ Widget _buildSignOutButton() {
                   ? SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.black,
-                        strokeWidth: 2,
-                      ),
+                      child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170)
                     )
                   : Icon(Icons.location_on, color: Colors.black),
               label: Text(
@@ -834,7 +842,7 @@ Widget _buildSignOutButton() {
   // Action Buttons in Bottom Sheet
   Widget _buildActionButtons(BuildContext context) {
     return _isSaving
-        ? Center(child: CircularProgressIndicator(color: AppColors.activeGreen))
+        ? Center(child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170))
         : Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [

@@ -5,11 +5,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/chat_modal.dart';
 import 'package:phuong/modal/organizer_profile_modal.dart';
 import 'package:phuong/services/chat_services/chat_service.dart';
 import 'package:phuong/services/organizer_profile_firebase_service.dart';
+import 'package:phuong/utils/cstm_transition.dart';
+import 'package:phuong/view/event_organizer_view_page/event_organizer_view_page.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 
 
@@ -245,16 +248,12 @@ Future<void> _fetchOrganizerProfile() async {
       backgroundColor: Colors.black,
       elevation: 0,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: AppColors.activeGreen),
+        icon: Icon(Icons.arrow_back_ios, color: AppColors.white),
         onPressed: () => Navigator.pop(context),
       ),
-      title: _buildOrganizerTitle(),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.more_vert, color: AppColors.activeGreen),
-          onPressed: () => _showChatOptionsBottomSheet(),
-        ),
-      ],
+      title: GestureDetector(onTap: () => Navigator.of(context).push(GentlePageTransition(page: OrganizerProfileViewScreen(organizerId: widget.organizerId,))),child: _buildOrganizerTitle()),
+     
+    
     );
   }
 
@@ -295,7 +294,7 @@ Future<void> _fetchOrganizerProfile() async {
       height: 40,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.activeGreen, width: 2),
+        border: Border.all(color: AppColors.white.withOpacity(0.5), width: 2),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
@@ -313,7 +312,9 @@ Future<void> _fetchOrganizerProfile() async {
     return Container(
       color: Colors.grey[900],
       child: Center(
-        child: CircularProgressIndicator(color: AppColors.activeGreen),
+        child: CircularProgressIndicator(
+                          color: grey,
+                        ),
       ),
     );
   }
@@ -394,14 +395,14 @@ String _formatLastSeen(Timestamp timestamp) {
   Widget _buildMessageList() {
     return _chatRoomId == null
         ? Center(
-            child: CircularProgressIndicator(color: AppColors.activeGreen),
+            child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170),
           )
         : StreamBuilder<List<ChatMessage>>(
             stream: _chatService.getMessages(_chatRoomId!),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
-                  child: CircularProgressIndicator(color: AppColors.activeGreen),
+                  child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170),
                 );
               }
 

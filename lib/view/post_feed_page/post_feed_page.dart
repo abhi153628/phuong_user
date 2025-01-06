@@ -8,63 +8,82 @@ import 'package:phuong/services/organizer_profile_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/event_organizer_view_page/event_organizer_view_page.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
-import 'package:phuong/view/post_feed_page/post_feed_bloc/bloc/post_feed_bloc.dart';
-import 'package:phuong/view/post_feed_page/post_feed_bloc/bloc/post_feed_event.dart';
-import 'package:phuong/view/post_feed_page/post_feed_bloc/bloc/post_feed_state.dart';
 import 'package:phuong/view/settings_section/sub_pages/liked_post.dart';
-
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:timeago/timeago.dart' as timeago;
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-class FeedPage extends StatelessWidget {
+class FeedPage extends StatefulWidget {
   final bool showLikedPostsOnly;
   final Stream<List<Post>> postsStream;
+ 
 
-  const FeedPage({
-    Key? key,
+
+   FeedPage({
+    Key? key, 
     required this.postsStream,
     this.showLikedPostsOnly = false,
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => FeedBloc(
-        likesService: LikesService(),
-        profileService: UserOrganizerProfileService(),
-        showLikedPostsOnly: showLikedPostsOnly,
-        postsStream: postsStream,
-      )..add(LoadFeedEvent())..add(LoadOrganizersEvent()),
-      child: _FeedPageContent(showLikedPostsOnly: showLikedPostsOnly),
-    );
-  }
+  State<FeedPage> createState() => _FeedPageState();
 }
 
-class _FeedPageContent extends StatelessWidget {
-  final bool showLikedPostsOnly;
+class _FeedPageState extends State<FeedPage> {
+  final LikesService _likesService = LikesService();
+  late Stream<List<Post>> _finalPostsStream;
+   final UserOrganizerProfileService _profileService =
+      UserOrganizerProfileService();
+         List<OrganizerProfile> _allOrganizers = [];
+  List<OrganizerProfile> _filteredOrganizers = [];
+    bool _isLoading = true;
 
-  const _FeedPageContent({
-    Key? key,
-    required this.showLikedPostsOnly,
-  }) : super(key: key);
+  @override
+  void initState() {
+    super.initState();
+    _initializeStream();
+     _loadOrganizers();
+  }
+
+  void _initializeStream() {
+    _finalPostsStream = widget.showLikedPostsOnly 
+      ? _likesService.getLikedPosts()
+      : widget.postsStream;
+  }
+  Future<void> _loadOrganizers() async {
+    try {
+      setState(() => _isLoading = true);
+      _allOrganizers = await _profileService.getAllOrganizers();
+      setState(() {
+        _filteredOrganizers = _allOrganizers;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading organizers: $e');
+      setState(() {
+        _isLoading = false;
+        _filteredOrganizers = []; // Empty list in case of error
+      });
+    }
+  }
+  
 
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-
-    return Scaffold(
+    final padding = mediaQuery.padding;
+    
+   return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Padding(
           padding: const EdgeInsets.only(top: 40, left: 20),
           child: Text(
-            showLikedPostsOnly ? 'Liked Posts' : 'Band Feed',
+            widget.showLikedPostsOnly ? 'Liked Posts' : 'Band Feed',
             style: GoogleFonts.syne(
               color: const Color(0xFFAFEB2B),
               fontSize: screenWidth * 0.06,
@@ -74,137 +93,144 @@ class _FeedPageContent extends StatelessWidget {
         ),
         elevation: 0,
       ),
-      body: BlocConsumer<FeedBloc, FeedState>(
-        listener: (context, state) {
-          if (state is FeedError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          }
-          if (state is PostLikeUpdated && !state.isLiked && showLikedPostsOnly) {
-            context.read<FeedBloc>().add(LoadFeedEvent());
-          }
-        },
-        builder: (context, state) {
-          return Column(
-            children: [
-              _buildOrganizerAvatars(context, state, screenWidth),
-              Expanded(
-                child: _buildFeedContent(context, state, screenWidth, screenHeight),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildOrganizerAvatars(BuildContext context, FeedState state, double screenWidth) {
-    if (state is! FeedLoaded) {
-      return Container(
-        height: 90,
-        margin: const EdgeInsets.symmetric(vertical: 16),
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: 5,
-          itemBuilder: (context, index) => _buildShimmerAvatar(),
-        ),
-      );
-    }
-
-    return Container(
-      height: 90,
-      margin: const EdgeInsets.symmetric(vertical: 16),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: state.organizers.length,
-        itemBuilder: (context, index) {
-          return _buildOrganizerAvatar(context, state.organizers[index], screenWidth);
-        },
-      ),
-    );
-  }
-
-  Widget _buildOrganizerAvatar(BuildContext context, OrganizerProfile organizer, double screenWidth) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 6),
-      child: Column(
+      body: Column(
         children: [
-          Hero(
-            tag: 'avatar_${organizer.id}',
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UserOrganizerProfileScreen(
-                      organizerId: organizer.id,
-                    ),
+          _buildOrganizerAvatars(),
+          Expanded( // Wrap StreamBuilder with Expanded
+            child: StreamBuilder<List<Post>>(
+              stream: _finalPostsStream,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return _buildErrorState(screenWidth);
+                }
+            
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return _buildLoadingState();
+                }
+            
+                final posts = snapshot.data ?? [];
+                
+                if (posts.isEmpty) {
+                  return _buildEmptyState(screenWidth);
+                }
+            
+                return ListView.builder(
+                  shrinkWrap: true, // Add this
+                  physics: const AlwaysScrollableScrollPhysics(), // Add this
+                  itemCount: posts.length,
+                  itemBuilder: (context, index) => _PostCard(
+                    post: posts[index],
+                    likesService: _likesService,
+                    onLikeChanged: widget.showLikedPostsOnly ? _handleLikeChanged : null,
+                    screenWidth: screenWidth,
+                    screenHeight: screenHeight,
                   ),
                 );
               },
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Colors.black, Colors.white],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  border: Border.all(
-                    color: grey,
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.activeGreen.withOpacity(0.2),
-                      blurRadius: 8,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(35),
-                  child: CachedNetworkImage(
-                    imageUrl: organizer.imageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[900],
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: grey,
-                        ),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[900],
-                      child: const Icon(Icons.person, color: Colors.grey),
-                    ),
-                  ),
-                ),
-              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            organizer.name,
-            style: GoogleFonts.notoSans(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
   }
+    Widget _buildOrganizerAvatars() {
+    return Container(
+      height: 90,
+      margin: EdgeInsets.symmetric(vertical: 16),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        itemCount: _filteredOrganizers.length,
+        itemBuilder: (context, index) {
+          final organizer = _filteredOrganizers[index];
+          return _buildOrganizerAvatar(organizer);
+        },
+      ),
+    );
+  }
+   Widget _buildOrganizerAvatar(OrganizerProfile organizer) {
+  return Container(
+    margin: EdgeInsets.symmetric(horizontal: 6),
+    child: Column(
+      children: [
+        Hero(
+          tag: 'avatar_${organizer.id}',
+          child: GestureDetector(
+            onTap: () {
+              // Navigate to Organizer Details Page
+              Navigator.push(
+                context, 
+                MaterialPageRoute(
+                  builder: (context) => OrganizerProfileViewScreen(
+                    organizerId: organizer.id,
+                    
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Colors.black, Colors.white],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                border: Border.all(
+                  color: grey,
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.activeGreen.withOpacity(0.2),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(35),
+                child: CachedNetworkImage(
+                  imageUrl: organizer.imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[900],
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: grey,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[900],
+                    child: Icon(Icons.person, color: Colors.grey),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: 8),
+        Text(
+          organizer.name,
+          style: GoogleFonts.notoSans(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    ),
+  );
+}
 
+
+  
+  
   Widget _buildShimmerAvatar() {
     return Shimmer.fromColors(
       baseColor: Colors.grey[900]!,
@@ -216,12 +242,12 @@ class _FeedPageContent extends StatelessWidget {
             Container(
               width: 60,
               height: 60,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Container(
               width: 50,
               height: 10,
@@ -233,43 +259,74 @@ class _FeedPageContent extends StatelessWidget {
     );
   }
 
-  Widget _buildFeedContent(BuildContext context, FeedState state, double screenWidth, double screenHeight) {
-    if (state is FeedLoading) {
-      return ListView.builder(
-        itemCount: 3,
-        itemBuilder: (context, index) => _buildShimmerEffect(screenHeight),
-      );
-    }
 
-    if (state is FeedLoaded) {
-      if (state.posts.isEmpty) {
-        return _buildEmptyState(screenWidth);
-      }
-
-      return ListView.builder(
-        itemCount: state.posts.length,
-        itemBuilder: (context, index) => _PostCard(
-          post: state.posts[index],
-          screenWidth: screenWidth,
-          screenHeight: screenHeight,
-          onLikeChanged: (postId, isLiked) {
-            context.read<FeedBloc>().add(
-              LikePostEvent(postId: postId, isLiked: isLiked),
-            );
-          },
-          showLikedPostsOnly: showLikedPostsOnly,
-        ),
-      );
-    }
-
-    if (state is FeedError) {
-      return _buildErrorState(context, screenWidth);
-    }
-
-    return const SizedBox.shrink();
+  Widget _buildErrorState(double screenWidth) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Unable to load ${widget.showLikedPostsOnly ? 'liked posts' : 'feed'}',
+            style: GoogleFonts.notoSans(
+              color: Colors.white,
+              fontSize: screenWidth * 0.04,
+            ),
+          ),
+          SizedBox(height: screenWidth * 0.02),
+          TextButton(
+            onPressed: () => setState(() => _initializeStream()),
+            child: Text(
+              'Retry',
+              style: GoogleFonts.notoSans(
+                color: const Color(0xFFAFEB2B),
+                fontSize: screenWidth * 0.04,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  Widget _buildShimmerEffect(double screenHeight) {
+  Widget _buildLoadingState() {
+    return ListView.builder(
+      itemCount: 3,
+      itemBuilder: (context, index) => _buildShimmerEffect(),
+    );
+  }
+
+  Widget _buildEmptyState(double screenWidth) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            widget.showLikedPostsOnly ? Icons.favorite_border : Icons.post_add,
+            color: Colors.grey[400],
+            size: screenWidth * 0.12,
+          ),
+          SizedBox(height: screenWidth * 0.04),
+          Text(
+            widget.showLikedPostsOnly 
+              ? 'No liked posts yet'
+              : 'No posts available',
+            style: GoogleFonts.notoSans(
+              color: Colors.white,
+              fontSize: screenWidth * 0.04,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleLikeChanged(Post post, bool isLiked) {
+    if (!isLiked) {
+      setState(() => _initializeStream());
+    }
+  }
+
+  Widget _buildShimmerEffect() {
     return Shimmer.fromColors(
       baseColor: Colors.grey[900]!,
       highlightColor: Colors.grey[800]!,
@@ -299,59 +356,8 @@ class _FeedPageContent extends StatelessWidget {
           ),
           Container(
             width: double.infinity,
-            height: screenHeight * 0.4,
+            height: 300,
             color: Colors.white,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(double screenWidth) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            showLikedPostsOnly ? Icons.favorite_border : Icons.post_add,
-            color: Colors.grey[400],
-            size: screenWidth * 0.12,
-          ),
-          SizedBox(height: screenWidth * 0.04),
-          Text(
-            showLikedPostsOnly ? 'No liked posts yet' : 'No posts available',
-            style: GoogleFonts.notoSans(
-              color: Colors.white,
-              fontSize: screenWidth * 0.04,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState(BuildContext context, double screenWidth) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Unable to load ${showLikedPostsOnly ? 'liked posts' : 'feed'}',
-            style: GoogleFonts.notoSans(
-              color: Colors.white,
-              fontSize: screenWidth * 0.04,
-            ),
-          ),
-          SizedBox(height: screenWidth * 0.02),
-          TextButton(
-            onPressed: () => context.read<FeedBloc>().add(LoadFeedEvent()),
-            child: Text(
-              'Retry',
-              style: GoogleFonts.notoSans(
-                color: const Color(0xFFAFEB2B),
-                fontSize: screenWidth * 0.04,
-              ),
-            ),
           ),
         ],
       ),
@@ -361,18 +367,18 @@ class _FeedPageContent extends StatelessWidget {
 
 class _PostCard extends StatelessWidget {
   final Post post;
+  final LikesService likesService;
+  final Function(Post, bool)? onLikeChanged;
   final double screenWidth;
   final double screenHeight;
-  final Function(String, bool) onLikeChanged;
-  final bool showLikedPostsOnly;
 
   const _PostCard({
     Key? key,
     required this.post,
+    required this.likesService,
     required this.screenWidth,
     required this.screenHeight,
-    required this.onLikeChanged,
-    required this.showLikedPostsOnly,
+    this.onLikeChanged,
   }) : super(key: key);
 
   void _showLikeToast(BuildContext context) {
@@ -382,7 +388,7 @@ class _PostCard extends StatelessWidget {
           children: [
             const Icon(Icons.favorite, color: Colors.white),
             SizedBox(width: screenWidth * 0.02),
-            const Expanded(
+            Expanded(
               child: Text(
                 'Post added to your likes!',
                 overflow: TextOverflow.ellipsis,
@@ -397,7 +403,7 @@ class _PostCard extends StatelessWidget {
           label: 'View Likes',
           textColor: Colors.white,
           onPressed: () {
-            Navigator.of(context).push(GentlePageTransition(page:  LikedPostsPage()));
+            Navigator.of(context).push(GentlePageTransition(page: LikedPostsPage()));
           },
         ),
       ),
@@ -407,10 +413,13 @@ class _PostCard extends StatelessWidget {
   Future<void> _handleLike(BuildContext context, bool isLiked) async {
     HapticFeedback.mediumImpact();
     try {
-      onLikeChanged(post.id, isLiked);
-      if (!isLiked) {
+      if (isLiked) {
+        await likesService.unlikePost(post.id);
+      } else {
+        await likesService.likePost(post.id);
         _showLikeToast(context);
       }
+      onLikeChanged?.call(post, !isLiked);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -426,9 +435,9 @@ class _PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double imageHeight = screenHeight * 0.4;
-    final double avatarSize = screenWidth * 0.1;
-
+    final double imageHeight = screenHeight * 0.4; // Responsive image height
+    final double avatarSize = screenWidth * 0.1; // Responsive avatar size
+    
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: screenWidth * 0.04,
@@ -443,7 +452,7 @@ class _PostCard extends StatelessWidget {
                   ? InkWell(
                       onTap: () => Navigator.of(context).push(
                         GentlePageTransition(
-                          page: UserOrganizerProfileScreen(organizerId: post.organizerId),
+                          page: OrganizerProfileViewScreen(organizerId: post.organizerId),
                         ),
                       ),
                       child: ClipOval(
@@ -458,7 +467,7 @@ class _PostCard extends StatelessWidget {
                       ),
                     )
                   : _buildAvatarPlaceholder(),
-             SizedBox(width: screenWidth * 0.03),
+              SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -491,7 +500,7 @@ class _PostCard extends StatelessWidget {
             child: Stack(
               children: [
                 StreamBuilder<bool>(
-                  stream: context.read<FeedBloc>().watchPostLikeStatus(post.id),
+                  stream: likesService.isPostLiked(post.id),
                   initialData: post.isLiked,
                   builder: (context, snapshot) {
                     final isLiked = snapshot.data ?? false;
@@ -533,7 +542,7 @@ class _PostCard extends StatelessWidget {
                   bottom: screenHeight * 0.02,
                   right: screenWidth * 0.04,
                   child: StreamBuilder<bool>(
-                    stream: context.read<FeedBloc>().watchPostLikeStatus(post.id),
+                    stream: likesService.isPostLiked(post.id),
                     initialData: post.isLiked,
                     builder: (context, snapshot) {
                       final isLiked = snapshot.data ?? false;
@@ -600,13 +609,5 @@ class _PostCard extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-// Extension to add post like status monitoring to FeedBloc
-extension PostLikeStatusMonitoring on FeedBloc {
-  Stream<bool> watchPostLikeStatus(String postId) {
-    final LikesService likesService = LikesService();
-    return likesService.isPostLiked(postId);
   }
 }

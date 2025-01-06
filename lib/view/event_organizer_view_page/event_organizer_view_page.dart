@@ -1,25 +1,27 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phuong/modal/organizer_profile_modal.dart';
 import 'package:phuong/services/organizer_profile_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/chat_section/chat_view_screen.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 
-class UserOrganizerProfileScreen extends StatefulWidget {
+class OrganizerProfileViewScreen extends StatefulWidget {
   final String organizerId;
 
-  const UserOrganizerProfileScreen({
+  const OrganizerProfileViewScreen({
     Key? key,
     required this.organizerId,
   }) : super(key: key);
 
   @override
-  State<UserOrganizerProfileScreen> createState() => _UserOrganizerProfileScreenState();
+  State<OrganizerProfileViewScreen> createState() => _OrganizerProfileViewScreenState();
 }
 
-class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
+class _OrganizerProfileViewScreenState extends State<OrganizerProfileViewScreen>
     with SingleTickerProviderStateMixin {
   late final UserOrganizerProfileService _profileService;
   late final AnimationController _animationController;
@@ -71,6 +73,7 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
     super.dispose();
   }
 
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -78,18 +81,46 @@ class _UserOrganizerProfileScreenState extends State<UserOrganizerProfileScreen>
       child: Scaffold(
         backgroundColor: Colors.black,
         body: SafeArea(
-          child: _isLoading
-              ? Center(child: CircularProgressIndicator(color: AppColors.activeGreen))
-              : _profile == null
-                  ? const Center(child: Text('No profile found', style: TextStyle(color: Colors.white70)))
-                  : CustomScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      slivers: [
-                        _buildSliverAppBar(),
-                        _buildProfileInfo(),
-                        _buildPostsGrid(),
+          child: Stack(
+            children: [
+              _isLoading
+                ? Center(child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170))
+                : _profile == null
+                    ? const Center(child: Text('No profile found', style: TextStyle(color: Colors.white70)))
+                    : CustomScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        slivers: [
+                          _buildSliverAppBar(),
+                          _buildProfileInfo(),
+                          _buildPostsGrid(),
+                        ],
+                      ),
+              // iOS-style back button
+              Positioned(
+                top: 8,
+                left: 8,
+                child: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          CupertinoIcons.back,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                       
+                       
                       ],
                     ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -99,6 +130,7 @@ Widget _buildSliverAppBar() {
     iconTheme: const IconThemeData(color: Colors.white),
     expandedHeight: 300,
     pinned: true,
+      automaticallyImplyLeading: false,
     backgroundColor: Colors.transparent,
     flexibleSpace: FlexibleSpaceBar(
       background: LayoutBuilder(
@@ -197,10 +229,7 @@ Widget _buildSliverAppBar() {
                     imageUrl: _profile!.imageUrl,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.activeGreen,
-                        strokeWidth: 2,
-                      ),
+                      child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170)
                     ),
                     errorWidget: _buildProfileImagePlaceholder,
                   )
@@ -265,8 +294,7 @@ Widget _buildSliverAppBar() {
                 const SizedBox(height: 24),
                 _buildActionButtons(),
                 const SizedBox(height: 24),
-                // _buildStats(),
-              //   const SizedBox(height: 24),
+            
               ],
             ),
           );
@@ -341,51 +369,13 @@ Widget _buildSliverAppBar() {
             ),
           ),
           const SizedBox(width: 16),
-          // Expanded(
-          //   child: OutlinedButton(
-          //     style: OutlinedButton.styleFrom(
-          //       side: BorderSide(color: AppColors.activeGreen),
-          //       foregroundColor: AppColors.activeGreen,
-          //       padding: const EdgeInsets.symmetric(vertical: 16),
-          //       shape: RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.circular(20),
-          //       ),
-          //     ),
-          //     onPressed: () {
-          //       // Follow functionality
-          //     },
-          //     child: const Row(
-          //       mainAxisAlignment: MainAxisAlignment.center,
-          //       mainAxisSize: MainAxisSize.min,
-          //       children: [
-          //         Icon(Icons.person_add, size: 20),
-          //         SizedBox(width: 8),
-          //         Text(
-          //           'Follow',
-          //           style: TextStyle(
-          //             fontSize: 16,
-          //             fontWeight: FontWeight.bold,
-          //           ),
-          //         ),
-          //       ],
-          //     ),
-          //   ),
-          // ),
+        
         ],
       ),
     ).animate().fadeIn(duration: 700.ms).slideY(begin: 0.3, end: 0);
   }
 
-  // Widget _buildStats() {
-  //   return Row(
-  //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //     children: [
-  //       _buildStatColumn('Posts', _profile?.posts.length.toString() ?? '0'),
-  //       _buildStatColumn('Followers', '0'),
-  //       _buildStatColumn('Following', '0'),
-  //     ],
-  //   );
-  // }
+ 
 
   Widget _buildStatColumn(String label, String count) {
     return Column(
@@ -502,9 +492,7 @@ class _PostThumbnail extends StatelessWidget {
                           placeholder: (context, url) => Container(
                             color: Colors.grey[850],
                             child: Center(
-                              child: CircularProgressIndicator(
-                                color: AppColors.activeGreen,
-                              ),
+                              child:Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170)
                             ),
                           ),
                           errorWidget: (context, url, error) => Container(
@@ -583,9 +571,7 @@ class _ImageViewerPage extends StatelessWidget {
                       placeholder: (context, url) => Container(
                         color: Colors.transparent,
                         child: Center(
-                          child: CircularProgressIndicator(
-                            color: AppColors.activeGreen,
-                          ),
+                          child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170)
                         ),
                       ),
                       errorWidget: (context, url, error) => Container(

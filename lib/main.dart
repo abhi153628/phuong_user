@@ -5,10 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phuong/firebase_options.dart';
 import 'package:phuong/repository/search_provider.dart';
 import 'package:phuong/services/event_fetching_firebase_service.dart';
-import 'package:phuong/view/auth_screens/auth_screen.dart';
 import 'package:phuong/view/homepage/widgets/event_carousel/carousel_bloc/bloc/carousel_event.dart';
 import 'package:phuong/view/wrapper.dart';
-
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -52,6 +50,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Phuong',
       home:Wrapper(),
     );

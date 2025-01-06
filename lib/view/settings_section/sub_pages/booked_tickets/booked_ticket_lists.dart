@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/booking_modal.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/services/booking_service.dart';
 import 'package:phuong/services/event_fetching_firebase_service.dart';
-
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/settings_section/sub_pages/booked_tickets/user_ticket_view_page.dart';
-
 import 'package:shimmer/shimmer.dart';
 
 class TicketListPage extends StatefulWidget {
@@ -62,7 +61,7 @@ class _TicketListPageState extends State<TicketListPage> {
             style: GoogleFonts.syne(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: AppColors.activeGreen,
+              color: white,
             ),
           ),
         ],

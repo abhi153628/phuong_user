@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/services/booking_service.dart';
 import 'package:phuong/services/event_fetching_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
-import 'package:phuong/view/event_detail_screen/payment_sucess_page.dart';
+import 'package:phuong/view/payment_sucess_page/payment_sucess_page.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -27,6 +28,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
   String? _errorMessage;
   double _totalPrice = 0.0;
   late Razorpay _razorpay;
+    bool _isLoading = false;
 
   @override
   void initState() {
@@ -34,7 +36,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
     _initializeRazorpay();
   }
 
-  // Initialize Razorpay instance
+  //! Initialize Razorpay instance
   void _initializeRazorpay() {
     _razorpay = Razorpay();
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
@@ -42,10 +44,16 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
     _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
   }
 
-  // Handle successful payments
+  //! Handle successful payments
 void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+  if (mounted) {
+    setState(() {
+      _isLoading = true;  
+    });
+  }
+
   try {
-       final DateTime paymentDateTime = DateTime.now();
+    final DateTime paymentDateTime = DateTime.now();
     // Create booking after successful payment
     final success = await _bookingService.bookEvent(
       widget.event,
@@ -53,39 +61,51 @@ void _handlePaymentSuccess(PaymentSuccessResponse response) async {
     );
 
     if (success) {
+
+      await Future.delayed(const Duration(seconds: 2));
+      
       Fluttertoast.showToast(
         msg: "Booking Successful!",
         toastLength: Toast.LENGTH_LONG,
       );
       
-      Navigator.of(context).pushReplacement(
-        GentlePageTransition(
-          page: 
-          MinimalistSuccessPage(
-            event: widget.event,
-            selectedSeats: _selectedSeats,
-            dateTime: paymentDateTime,
-            transactionId: response.paymentId ?? 'N/A',
-           
-            key: GlobalKey(),
-            totalPrice: _totalPrice,
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          GentlePageTransition(
+            page: MinimalistSuccessPage(
+              event: widget.event,
+              selectedSeats: _selectedSeats,
+              dateTime: paymentDateTime,
+              transactionId: response.paymentId ?? 'N/A',
+              key: GlobalKey(),
+              totalPrice: _totalPrice,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } else {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
       Fluttertoast.showToast(
         msg: "Booking failed. Please try again.",
         toastLength: Toast.LENGTH_LONG,
       );
     }
   } catch (e) {
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
     Fluttertoast.showToast(
       msg: "Error: ${e.toString()}",
       toastLength: Toast.LENGTH_LONG,
     );
   }
 }
-
 
   // Handle payment failures
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -172,7 +192,7 @@ void _decrementSeats() {
 
   @override
   void dispose() {
-    _razorpay.clear(); // Clear all razorpay event listeners 
+    _razorpay.clear(); 
     super.dispose();
   }
 
@@ -182,8 +202,30 @@ void _decrementSeats() {
     stream: EventService().getEventStream(widget.event.eventId!),
     builder: (context, snapshot) {
       if (!snapshot.hasData) {
-        return const Center(child: CircularProgressIndicator());
+        return  Center(child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170));
       }
+         if (_isLoading) {
+          return Container(
+            color: Colors.black87,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                 Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Processing your booking...',
+                    style: GoogleFonts.notoSans(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
 
       final updatedEvent = snapshot.data!;
       final noSeatsAvailable = updatedEvent.seatAvailabilityCount == 0;

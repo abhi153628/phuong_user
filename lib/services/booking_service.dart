@@ -102,4 +102,58 @@ class BookingService {
             .map((doc) => BookingModel.fromMap(doc.data()))
             .toList());
   }
+  Future<BookingTicketResult> getBookingDetails(String bookingId) async {
+    try {
+      // Get booking details
+      final bookingDoc = await _firestore
+          .collection('userBookings')
+          .doc(bookingId)
+          .get();
+
+      if (!bookingDoc.exists) {
+        throw Exception('Booking not found');
+      }
+
+      // Create booking model from document
+      final booking = BookingModel.fromMap(bookingDoc.data()!);
+
+      // Get associated event details
+      final eventDoc = await _firestore
+          .collection('eventCollection')
+          .doc(booking.eventId)
+          .get();
+
+      if (!eventDoc.exists) {
+        throw Exception('Event not found');
+      }
+
+      // Create event model from document
+      final event = EventModel.fromMap(eventDoc.data()!);
+
+      return BookingTicketResult(
+        booking: booking,
+        event: event,
+      );
+    } catch (e) {
+      print('Error fetching booking details: $e');
+      rethrow;
+    }
+  }
+
+  // Existing methods...
+  
+
+
+
 }
+
+class BookingTicketResult {
+  final BookingModel booking;
+  final EventModel event;
+
+  BookingTicketResult({
+    required this.booking,
+    required this.event,
+  });
+}
+

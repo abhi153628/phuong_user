@@ -184,7 +184,7 @@ class _HeloState extends State<Helo> with SingleTickerProviderStateMixin {
         const SizedBox(height: 16),
         SocialButton(
           text: 'Sign in with Google',
-          iconPath: 'assets/welcomepageassets/pngwing.com.png', // Make sure to add this asset
+          iconPath: 'assets/welcomepageassets/pngwing.com.png', 
           onPressed: _handleGoogleSignIn,
           backgroundColor: Colors.white,
           textColor: Colors.white,

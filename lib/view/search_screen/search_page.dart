@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phuong/repository/search_provider.dart';
 import 'package:phuong/view/search_screen/search_event_card_widget.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
@@ -16,6 +17,12 @@ class EventSearchScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
+          leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Colors.white), 
+          onPressed: () {
+            Navigator.pop(context); 
+          },
+        ),
         backgroundColor: Colors.black,
         title: Text(
           'Event Explorer',
@@ -32,10 +39,8 @@ class EventSearchScreen extends StatelessWidget {
           _buildSearchSection(context, searchProvider, colorScheme),
           Expanded(
             child: searchProvider.isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.activeGreen,
-                    ),
+                ?  Center(
+                    child:Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170)
                   )
                 : searchProvider.filteredEvents.isEmpty
                     ? _buildNoResultsWidget()

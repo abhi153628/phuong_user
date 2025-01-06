@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phuong/constants/colors.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 
 class PrivacyPolicyScreen extends StatefulWidget {
@@ -41,13 +42,13 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> with SingleTi
         title: Text(
           'Privacy Policy',
           style: GoogleFonts.syne(
-            color: neonGreen,
+            color: white,
             fontWeight: FontWeight.w600,
             fontSize: 24,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: neonGreen),
+          icon:  Icon(Icons.arrow_back_ios, color: white),
           onPressed: () => Navigator.pop(context),
         ),
       ),

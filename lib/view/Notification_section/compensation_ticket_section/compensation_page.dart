@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phuong/view/Notification_section/compensation_ticket_section/compensation_terms_condition.dart';
 
 
@@ -170,8 +171,8 @@ class _CompensationPageState extends State<CompensationPage>
                       showDialog(
                         context: context,
                         barrierDismissible: false,
-                        builder: (context) => const Center(
-                          child: CircularProgressIndicator(),
+                        builder: (context) =>  Center(
+                          child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170),
                         ),
                       );
                     }

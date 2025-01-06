@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phuong/view/Notification_section/compensation_ticket_section/compensation_page.dart';
 import 'package:phuong/services/user_profile_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
@@ -32,7 +33,7 @@ class NotificationPage extends StatelessWidget {
           backgroundColor: Colors.black,
           elevation: 0,
           titleTextStyle: GoogleFonts.syne(
-              color: AppColors.activeGreen, // Neon green
+              color: AppColors.white, // Neon green
               fontSize: 20,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.5),
@@ -41,7 +42,17 @@ class NotificationPage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text('Notifications'),
+          leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios, // iOS-style back arrow
+            color: Colors.white, // Set icon color to black for visibility
+          ),
+          onPressed: () {
+            Navigator.of(context).pop(); // Navigate back
+          },
+        ),
           actions: [
+            
             IconButton(
               icon: Icon(Icons.refresh, color: AppColors.activeGreen),
               onPressed: () {
@@ -158,9 +169,7 @@ class NotificationList extends StatelessWidget {
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
-            child: CircularProgressIndicator(
-              color: AppColors.activeGreen,
-            ),
+            child:Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170)
           );
         }
 
@@ -243,20 +252,20 @@ class NotificationList extends StatelessWidget {
                 ),
                 child: InkWell(
                   onTap: () {
-  _markAsRead(notification.id).then(
-    (value) => Navigator.of(context).push(
-      GentlePageTransition(
-        page: CompensationPage(
-          bookingId: bookingId,
-          eventName: eventName,
-          seatsBooked: seats,
-          totalAmount: amount,
-          timestamp: (timestamp as Timestamp).toDate(),
-        ),
-      ),
-    ),
-  );
-},
+                    _markAsRead(notification.id).then(
+                      (value) => Navigator.of(context).push(
+                        GentlePageTransition(
+                          page: CompensationPage(
+                            bookingId: bookingId,
+                            eventName: eventName,
+                            seatsBooked: seats,
+                            totalAmount: amount,
+                            timestamp: (timestamp as Timestamp).toDate(),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: EdgeInsets.all(16),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-
 import 'package:phuong/modal/organizer_profile_modal.dart';
 import 'package:phuong/services/organizer_profile_firebase_service.dart';
 import 'package:phuong/view/chat_section/chat_listing_screen/chat_listing_screen.dart';
@@ -59,63 +57,64 @@ SettingsPage()
   }
 
   @override
- Widget build(BuildContext context) {
-  final bool isLightTheme = Theme.of(context).brightness == Brightness.light;
-  double displayWidth = MediaQuery.sizeOf(context).width;
-  
-  return MediaQuery(
-    data: MediaQuery.of(context).copyWith(padding: EdgeInsets.zero),
-    child: AnimatedSwitcher(
-      duration: const Duration(milliseconds: 800),
-      switchInCurve: Curves.easeInOut,
-      switchOutCurve: Curves.easeInOut,
-      transitionBuilder: (Widget child, Animation<double> animation) {
-        return FadeTransition(
-          opacity: CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeInOut,
-          ),
-          child: ScaleTransition(
-            scale: Tween<double>(
-              begin: 0.98,
-              end: 1.0,
-            ).animate(CurvedAnimation(
+  Widget build(BuildContext context) {
+    final bool isLightTheme = Theme.of(context).brightness == Brightness.light;
+    double displayWidth = MediaQuery.sizeOf(context).width;
+    
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(padding: EdgeInsets.zero),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 800),
+        switchInCurve: Curves.easeInOut,
+        switchOutCurve: Curves.easeInOut,
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(
+            opacity: CurvedAnimation(
               parent: animation,
               curve: Curves.easeInOut,
-            )),
-            child: child,
-          ),
-        );
-      },
-      child: Scaffold(
-        key: ValueKey(isLightTheme),
-      
-     body: screens[currentIndex],
-        backgroundColor: AppColors.scafoldColor,
-        bottomNavigationBar: Container(
-          margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).padding.bottom + displayWidth * 0.02,
-            left: displayWidth * 0.03,
-            right: displayWidth * 0.03,
-            top: displayWidth * 0.02
-          ),
-          height: displayWidth * .15,
-          decoration: BoxDecoration(
-              color: isLightTheme
-                  ? AppColors.activeGreen
-                  : AppColors.activeGreen,
+            ),
+            child: ScaleTransition(
+              scale: Tween<double>(
+                begin: 0.98,
+                end: 1.0,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeInOut,
+              )),
+              child: child,
+            ),
+          );
+        },
+        child: Scaffold(
+          key: ValueKey(isLightTheme),
+          body: screens[currentIndex],
+          backgroundColor: AppColors.scafoldColor,
+          bottomNavigationBar: Container(
+            margin: EdgeInsets.only(
+              bottom: MediaQuery.of(context).padding.bottom + displayWidth * 0.02,
+              left: displayWidth * 0.03,
+              right: displayWidth * 0.03,
+              top: displayWidth * 0.02
+            ),
+            height: displayWidth * .15,
+            decoration: BoxDecoration(
+              color: isLightTheme ? AppColors.activeGreen : AppColors.activeGreen,
               boxShadow: [
                 BoxShadow(
-                    color: Colors.black.withOpacity(.1),
-                    blurRadius: 30,
-                    offset: const Offset(0, 10))
+                  color: Colors.black.withOpacity(.1),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10)
+                )
               ],
-              borderRadius: BorderRadius.circular(50)),
-          child: ListView.builder(
-              itemCount: 4,
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: displayWidth * .02),
-              itemBuilder: (context, index) => InkWell(
+              borderRadius: BorderRadius.circular(50)
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return ListView.builder(
+                  itemCount: 4,
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.symmetric(horizontal: displayWidth * .02),
+                  itemBuilder: (context, index) => InkWell(
                     onTap: () {
                       setState(() {
                         currentIndex = index;
@@ -124,85 +123,65 @@ SettingsPage()
                     },
                     splashColor: Colors.transparent,
                     highlightColor: Colors.transparent,
-                    child: Stack(
-                      children: [
-                        AnimatedContainer(
-                          duration: const Duration(seconds: 1),
-                          curve: Curves.fastLinearToSlowEaseIn,
-                          width: index == currentIndex
-                              ? displayWidth * .32
-                              : displayWidth * .18,
-                          alignment: Alignment.center,
-                          child: AnimatedContainer(
+                    child: SizedBox(
+                      width: index == currentIndex
+                          ? displayWidth * .32
+                          : displayWidth * .18,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          AnimatedContainer(
                             duration: const Duration(seconds: 1),
                             curve: Curves.fastLinearToSlowEaseIn,
-                            height:
-                                index == currentIndex ? displayWidth * .12 : 0,
-                            width:
-                                index == currentIndex ? displayWidth * .32 : 0,
+                            height: index == currentIndex ? displayWidth * .12 : 0,
+                            width: index == currentIndex ? displayWidth * .32 : 0,
                             decoration: BoxDecoration(
-                                color: index == currentIndex
-                                    ? isLightTheme
-                                        ? AppColors.scafoldColor
-                                        : AppColors.scafoldColor
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(50)),
-                          ),
-                        ),
-                        AnimatedContainer(
-                          duration: const Duration(seconds: 1),
-                          curve: Curves.fastLinearToSlowEaseIn,
-                          width: index == currentIndex
-                              ? displayWidth * .31
-                              : displayWidth * .18,
-                          alignment: Alignment.center,
-                          child: Stack(children: [
-                            Row(
-                              children: [
-                                AnimatedContainer(
-                                  duration: const Duration(seconds: 1),
-                                  curve: Curves.fastLinearToSlowEaseIn,
-                                  width: index == currentIndex
-                                      ? displayWidth * .12
-                                      : 0,
-                                ),
-                                AnimatedOpacity(
-                                  opacity: index == currentIndex ? 1 : 0,
-                                  duration: const Duration(seconds: 1),
-                                  curve: Curves.fastLinearToSlowEaseIn,
-                                  child: Text(
-                                      index == currentIndex
-                                          ? listOfStrings[index]
-                                          : '',style: GoogleFonts.syne(color: Colors.white,letterSpacing: 0.1,fontSize: 15,fontWeight: FontWeight.bold),
-                                     ),
-                                )
-                              ],
+                              color: index == currentIndex
+                                  ? AppColors.scafoldColor
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(50)
                             ),
-                            Row(
-                              children: [
-                                AnimatedContainer(
-                                  duration: const Duration(seconds: 1),
-                                  curve: Curves.fastLinearToSlowEaseIn,
-                                  width: index == currentIndex
-                                      ? displayWidth * .03
-                                      : 20,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(width: index == currentIndex ? displayWidth * .03 : 20),
+                              Icon(
+                                listOfIcons[index],
+                                size: displayWidth * .076,
+                                color: index == currentIndex
+                                    ? AppColors.activeGreen
+                                    : AppColors.scafoldColor,
+                              ),
+                              if (index == currentIndex)
+                                Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(left: displayWidth * .03),
+                                    child: Text(
+                                      listOfStrings[index],
+                                      style: GoogleFonts.syne(
+                                        color: Colors.white,
+                                        letterSpacing: 0.1,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                 ),
-                                Icon(
-                                  listOfIcons[index],
-                                  size: displayWidth * .076,
-                                  color: index == currentIndex
-                                      ? AppColors.activeGreen
-                                      : AppColors.scafoldColor,
-                                ),
-                              ],
-                            )
-                          ]),
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  )),
+                  ),
+                );
+              },
+            ),
+          ),
         ),
       ),
-   ) );
+    );
   }
 }

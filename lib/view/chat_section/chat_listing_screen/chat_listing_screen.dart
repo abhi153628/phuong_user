@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/chat_modal.dart';
 import 'package:phuong/modal/organizer_profile_modal.dart';
@@ -49,7 +50,7 @@ class _UserChatListView extends StatelessWidget {
           builder: (context, state) {
             if (state is ChatInitial || state is ChatLoading) {
               return Center(
-                child: CircularProgressIndicator(color: AppColors.activeGreen),
+                child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170),
               );
             }
 
@@ -161,7 +162,7 @@ class _UserChatListView extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => UserOrganizerProfileScreen(
+                    builder: (context) => OrganizerProfileViewScreen(
                       organizerId: organizer.id,
                     ),
                   ),
@@ -197,7 +198,7 @@ class _UserChatListView extends StatelessWidget {
                     placeholder: (context, url) => Container(
                       color: Colors.grey[900],
                       child: Center(
-                        child: CircularProgressIndicator(
+                        child:CircularProgressIndicator(
                           color: grey,
                         ),
                       ),
@@ -233,7 +234,7 @@ class _UserChatListView extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
-            child: CircularProgressIndicator(color: AppColors.activeGreen),
+            child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170),
           );
         }
 
@@ -290,7 +291,7 @@ class _UserChatListView extends StatelessWidget {
                     imageUrl: profile.imageUrl,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Center(
-                      child: CircularProgressIndicator(),
+                      child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170),
                     ),
                     errorWidget: (context, url, error) => Icon(
                       Icons.person,

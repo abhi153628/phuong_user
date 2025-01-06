@@ -51,6 +51,13 @@ class LikesService {
       rethrow;
     }
   }
+  Future<void> toggleLike(String postId, bool isLiked) async {
+  if (isLiked) {
+    await likePost(postId);
+  } else {
+    await unlikePost(postId);
+  }
+}
 
   // Unlike a post
   Future<void> unlikePost(String postId) async {
