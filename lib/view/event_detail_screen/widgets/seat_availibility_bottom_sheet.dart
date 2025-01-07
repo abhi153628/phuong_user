@@ -72,7 +72,7 @@ void _handlePaymentSuccess(PaymentSuccessResponse response) async {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           GentlePageTransition(
-            page: MinimalistSuccessPage(
+            page: PaymentSucessPage(
               event: widget.event,
               selectedSeats: _selectedSeats,
               dateTime: paymentDateTime,

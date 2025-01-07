@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -68,7 +69,7 @@ class _UserChatListView extends StatelessWidget {
                 children: [
                   _buildHeader(),
                   _buildOrganizerAvatars(state.filteredOrganizers),
-                  _buildSearchBar(context),
+                  FadeInLeft(child: _buildSearchBar(context)),
                   Expanded(
                     child: _buildChatList(state.chatRooms),
                   ),
@@ -84,20 +85,24 @@ class _UserChatListView extends StatelessWidget {
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 40, left: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Chats',
-            style: GoogleFonts.syne(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+    return FadeIn(
+      duration: Duration(milliseconds: 700),
+
+      child: Padding(
+        padding: const EdgeInsets.only(top: 40, left: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Chats',
+              style: GoogleFonts.syne(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -227,22 +232,25 @@ class _UserChatListView extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildChatList(Stream<List<ChatRoom>> chatRooms) {
+ Widget _buildChatList(Stream<List<ChatRoom>> chatRooms) {
     return StreamBuilder<List<ChatRoom>>(
       stream: chatRooms,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
-            child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170),
+            child: FadeIn(
+              child: Lottie.asset('assets/animations/Animation - 1736144056346.json', height: 170, width: 170),
+            ),
           );
         }
 
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return Center(
-            child: Text(
-              'No active chats',
-              style: GoogleFonts.notoSans(color: Colors.grey),
+            child: FadeIn(
+              child: Text(
+                'No active chats',
+                style: GoogleFonts.notoSans(color: Colors.grey),
+              ),
             ),
           );
         }
@@ -251,20 +259,23 @@ class _UserChatListView extends StatelessWidget {
           itemCount: snapshot.data!.length,
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           itemBuilder: (context, index) {
-            return _buildChatTile(context, snapshot.data![index]);
+            return FadeInUp(
+              duration: Duration(milliseconds: 400),
+              child: _buildChatTile(context, snapshot.data![index]),
+            );
           },
         );
       },
     );
   }
 
+
   Widget _buildChatTile(BuildContext context, ChatRoom chatRoom) {
     return FutureBuilder<OrganizerProfile?>(
-      future: UserOrganizerProfileService()
-          .fetchOrganizerProfile(chatRoom.organizerId),
+      future: UserOrganizerProfileService().fetchOrganizerProfile(chatRoom.organizerId),
       builder: (context, profileSnapshot) {
         if (profileSnapshot.connectionState == ConnectionState.waiting) {
-          return _buildLoadingTile();
+          return FadeIn(child: _buildLoadingTile());
         }
 
         if (!profileSnapshot.hasData || profileSnapshot.data == null) {
@@ -276,7 +287,9 @@ class _UserChatListView extends StatelessWidget {
           tag: 'chat_${profile.id}',
           child: Material(
             color: Colors.transparent,
-            child: ListTile(
+            child: ZoomIn(
+              duration: Duration(milliseconds: 400),
+              child: ListTile(
               contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
               leading: Container(
                 width: 56,
@@ -346,7 +359,7 @@ class _UserChatListView extends StatelessWidget {
             ),
           ),
         ),
-      );
+          ));
     },
   );
 }

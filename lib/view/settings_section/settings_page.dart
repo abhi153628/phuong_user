@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,9 +11,7 @@ import 'package:phuong/services/user_profile_firebase_service.dart';
 import 'package:phuong/utils/cstm_transition.dart';
 import 'package:phuong/view/privacy_policy.dart';
 import 'package:phuong/view/settings_section/sub_pages/booked_events_page.dart';
-
 import 'package:phuong/view/event_detail_screen/widgets/ph_no_authentication_botom_sheet.dart';
-import 'package:phuong/view/homepage/homepage.dart';
 import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/settings_section/sub_pages/saved_events.dart';
 import 'package:phuong/view/settings_section/sub_pages/booked_tickets/booked_ticket_lists.dart';
@@ -75,7 +74,7 @@ class _SettingsPageState extends State<SettingsPage> {
         }
       }
     } catch (e) {
-      _showErrorSnackBar('Error loading profile: $e');
+    toastMessage(context: context, message: 'Error loading profile: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -91,7 +90,7 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       final position = await _userProfileService.getCurrentLocation();
       if (position == null) {
-        _showErrorSnackBar('Unable to get current location');
+        toastMessage(context: context, message: 'Unable to get current location');
         return;
       }
 
@@ -105,12 +104,7 @@ class _SettingsPageState extends State<SettingsPage> {
       });
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Location updated successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
+     toastMessage(context: context, message: 'Location updated successfully');
     } catch (e) {
       String errorMessage = 'Error updating location';
       if (e.toString().contains('disabled')) {
@@ -120,7 +114,7 @@ class _SettingsPageState extends State<SettingsPage> {
         errorMessage =
             'Please grant location permission in your device settings';
       }
-      _showErrorSnackBar(errorMessage);
+     toastMessage(context: context, message: errorMessage);
     } finally {
       setModalState(() {
         _isUpdatingLocation = false;
@@ -143,12 +137,7 @@ void _showUpdatePhoneBottomSheet() {
         setState(() {
           _userPhone = phoneNumber;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Phone number updated successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
+      toastMessage(context: context, message: 'Phone number updated successfully');
       },
     ),
   );
@@ -159,7 +148,7 @@ void _showUpdatePhoneBottomSheet() {
   Future<void> _saveProfile(BuildContext context) async {
     final newName = _nameController.text.trim();
     if (newName.isEmpty) {
-      _showErrorSnackBar('Name cannot be empty');
+      toastMessage(context: context, message: 'Name cannot be empty');
       return;
     }
 
@@ -236,31 +225,13 @@ void _showUpdatePhoneBottomSheet() {
       Navigator.pop(context); // Close loading dialog
       Navigator.pop(context); // Close bottom sheet
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Profile updated successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
+    toastMessage(context: context, message: 'Profile updated successfully');
     } catch (e) {
       // Close loading dialog on error
       Navigator.pop(context);
-      _showErrorSnackBar('Failed to update profile: $e');
+      toastMessage(context: context, message: 'Failed to update profile: $e');
     }
   }
-
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
-
-
-
-
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -285,6 +256,7 @@ void _showUpdatePhoneBottomSheet() {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                       const SizedBox(height: 30),
                       _buildProfileCard(),
                       const SizedBox(height: 30),
                       _buildSettingsOptions(),
@@ -298,83 +270,133 @@ void _showUpdatePhoneBottomSheet() {
       ),
     );
   } Widget _buildProfileCard() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Container(
-          width: constraints.maxWidth,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.activeGreen.withOpacity(0.2),
-                blurRadius: 10,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: AppColors.activeGreen,
-                    child: Text(
-                      _userName.isNotEmpty ? _userName[0].toUpperCase() : '?',
-                      style: GoogleFonts.syne(
-                        color: Colors.black,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+    return FadeIn( duration: Duration(milliseconds: 900),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Container(
+            width: constraints.maxWidth,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.grey[900],
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.activeGreen.withOpacity(0.2),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: AppColors.activeGreen,
+                      child: Text(
+                        _userName.isNotEmpty ? _userName[0].toUpperCase() : '?',
+                        style: GoogleFonts.syne(
+                          color: Colors.black,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: AnimatedTextKit(
-                      key: ValueKey(_userName),
-                      animatedTexts: [
-                        TypewriterAnimatedText(
-                          _userName,
-                          textStyle: GoogleFonts.syne(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: AnimatedTextKit(
+                        key: ValueKey(_userName),
+                        animatedTexts: [
+                          TypewriterAnimatedText(
+                            _userName,
+                            textStyle: GoogleFonts.syne(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            speed: const Duration(milliseconds: 200),
                           ),
-                          speed: const Duration(milliseconds: 200),
-                        ),
-                      ],
-                      totalRepeatCount: 1,
-                      isRepeatingAnimation: false,
+                        ],
+                        totalRepeatCount: 1,
+                        isRepeatingAnimation: false,
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: _showEditProfileBottomSheet,
-                    icon: const Icon(Icons.edit, color: AppColors.grey),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              _buildInfoRow(
-                Icons.location_on_outlined,
-                'Location',
-                _currentAddress ?? 'Location not set',
-              ),
-              const SizedBox(height: 15),
-              _buildInfoRow(
-                Icons.phone_outlined,
-                'Phone',
-                _userPhone ?? 'Phone not set',
-                onEdit: _showUpdatePhoneBottomSheet,
-              ),
-            ],
-          ),
-        );
-      },
+                    IconButton(
+                      onPressed: _showEditProfileBottomSheet,
+                      icon: const Icon(Icons.edit, color: AppColors.grey),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _buildInfoRow(
+                  Icons.location_on_outlined,
+                  'Location',
+                  _currentAddress ?? 'Location not set',
+                ),
+                const SizedBox(height: 15),
+                _buildInfoRow(
+                  Icons.phone_outlined,
+                  'Phone',
+                  _userPhone ?? 'Phone not set',
+                  onEdit: _showUpdatePhoneBottomSheet,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
+  void toastMessage({
+  required BuildContext context,
+  required String message,
+  IconData icon = Icons.info_outline,
+  Color backgroundColor = const Color(0xFF87B321),
+  Duration duration = const Duration(seconds: 2),
+  String? actionLabel,
+  VoidCallback? onActionPressed,
+  double? screenWidth,
+}) {
+
+  screenWidth ??= MediaQuery.of(context).size.width;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Row(
+        children: [
+          Icon(icon, color: Colors.black),
+          SizedBox(width: screenWidth * 0.02),
+          Expanded(
+            child: Text(
+              message,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.notoSans(
+                color: Colors.black,
+                fontWeight: FontWeight.w700
+              ),
+            ),
+          ),
+        ],
+      ),
+      duration: duration,
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: backgroundColor,
+      action: actionLabel != null && onActionPressed != null
+          ? SnackBarAction(
+              label: actionLabel,
+              textColor: Colors.white,
+              onPressed: onActionPressed,
+            )
+          : null,
+      margin: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+  );
+}
 
   // Helper method to build info rows
   Widget _buildInfoRow(IconData icon, String title, String value, {VoidCallback? onEdit}) {
@@ -415,49 +437,51 @@ void _showUpdatePhoneBottomSheet() {
 
   // Settings Options List
 Widget _buildSettingsOptions() {
-    return Column(
-      children: [
-       
-        _buildSettingsTile(
-          icon: Icons.library_music,
-          title: 'Booked Events',
-          onTap: () => Navigator.of(context)
-              .push(GentlePageTransition(page: UserBookingsPage())),
-        ),
-        _buildSettingsTile(
-          icon: Icons.local_activity_outlined,
-          title: 'Tickets',
-          onTap: ()=> Navigator.of(context)
-              .push(GentlePageTransition(page: TicketListPage())),
-        ),
-        _buildSettingsTile(
-          icon: Icons.favorite_outline,
-          title: 'Liked Posts',
-          onTap: () => Navigator.of(context)
-              .push(GentlePageTransition(page: LikedPostsPage())),
-        ),
-        _buildSettingsTile(
-          icon: Icons.save,
-          title: 'Saved Events',
-          onTap: () {
-            if (_userId != null) {
-              Navigator.of(context).push(
-                GentlePageTransition(
-                  page: SavedEventsPage(userId: _userId!),
-                ),
-              );
-            } else {
-              _showErrorSnackBar('Unable to load saved events. Please try again.');
-            }
-          },
-        ),
+    return FadeIn( duration: Duration(milliseconds: 900),
+      child: Column(
+        children: [
+         
           _buildSettingsTile(
-          icon: Icons.verified_user,
-          title: 'Privacy Plicy',
-          onTap: () => Navigator.of(context)
-              .push(GentlePageTransition(page: PrivacyPolicyScreen())),
-        ),
-      ],
+            icon: Icons.library_music,
+            title: 'Booked Events',
+            onTap: () => Navigator.of(context)
+                .push(GentlePageTransition(page: UserBookingsPage())),
+          ),
+          _buildSettingsTile(
+            icon: Icons.local_activity_outlined,
+            title: 'Tickets',
+            onTap: ()=> Navigator.of(context)
+                .push(GentlePageTransition(page: TicketListPage())),
+          ),
+          _buildSettingsTile(
+            icon: Icons.favorite_outline,
+            title: 'Liked Posts',
+            onTap: () => Navigator.of(context)
+                .push(GentlePageTransition(page: LikedPostsPage())),
+          ),
+          _buildSettingsTile(
+            icon: Icons.save,
+            title: 'Saved Events',
+            onTap: () {
+              if (_userId != null) {
+                Navigator.of(context).push(
+                  GentlePageTransition(
+                    page: SavedEventsPage(userId: _userId!),
+                  ),
+                );
+              } else {
+               toastMessage(context: context, message: 'Unable to load saved events. Please try again.');
+              }
+            },
+          ),
+            _buildSettingsTile(
+            icon: Icons.verified_user,
+            title: 'Privacy Plicy',
+            onTap: () => Navigator.of(context)
+                .push(GentlePageTransition(page: PrivacyPolicyScreen())),
+          ),
+        ],
+      ),
     );
   }
 
@@ -830,7 +854,7 @@ Widget _buildSignOutButton() {
                   : Icon(Icons.location_on, color: Colors.black),
               label: Text(
                 _isUpdatingLocation ? 'Updating...' : 'Update Location',
-                style: GoogleFonts.notoSans(color: Colors.black),
+                style: GoogleFonts.notoSans(color: Colors.white),
               ),
             ),
           ),

@@ -10,14 +10,14 @@ import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/settings_section/sub_pages/booked_tickets/user_ticket_view_page.dart';
 import 'package:share_plus/share_plus.dart';
 
-class MinimalistSuccessPage extends StatefulWidget {
+class PaymentSucessPage extends StatefulWidget {
   final EventModel event;
   final int selectedSeats;
   final double totalPrice;
   final DateTime dateTime;
   final String transactionId;
 
-  const MinimalistSuccessPage(
+  const PaymentSucessPage(
       {Key? key,
       required this.event,
       required this.selectedSeats,
@@ -27,10 +27,10 @@ class MinimalistSuccessPage extends StatefulWidget {
       : super(key: key);
 
   @override
-  _MinimalistSuccessPageState createState() => _MinimalistSuccessPageState();
+  _PaymentSucessPageState createState() => _PaymentSucessPageState();
 }
 
-class _MinimalistSuccessPageState extends State<MinimalistSuccessPage>
+class _PaymentSucessPageState extends State<PaymentSucessPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
@@ -217,20 +217,89 @@ class _MinimalistSuccessPageState extends State<MinimalistSuccessPage>
                 SizedBox(
                   height: 20,
                 ),
-               InkWell(onTap: () => _showTicketDetails,
-                 child: Text(
-                      'View Details',
-                      style: GoogleFonts.notoSans(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                       
-                      ),
+                GestureDetector(onTap: () =>   showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Ticket Details',
+                style: GoogleFonts.roboto(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _buildDetailRow('Event', widget.event.eventName ?? 'N/A'),
+              // _buildDetailRow('Date', widget.event.date ?? 'N/A'),
+              _buildDetailRow('Seats', '${widget.selectedSeats}'),
+              _buildDetailRow(
+                  'Total Amount', '₹${widget.totalPrice.toStringAsFixed(2)}'),
+            ],
+          ),
+        ),
+      ),
+    ),
+                  child: Text(
+                    'View Details',
+                    style: GoogleFonts.notoSans(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
                     ),
-               ),
-                  SizedBox(height: 4,),
-                
-           Container(height: 2,width: 80,color: white,),
+                  ),
+                ),
+                SizedBox(
+                  height: 4,
+                ),
+
+                GestureDetector(onTap: () =>   showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Ticket Details',
+                style: GoogleFonts.roboto(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _buildDetailRow('Event', widget.event.eventName ?? 'N/A'),
+              // _buildDetailRow('Date', widget.event.date ?? 'N/A'),
+              _buildDetailRow('Seats', '${widget.selectedSeats}'),
+              _buildDetailRow(
+                  'Total Amount', '₹${widget.totalPrice.toStringAsFixed(2)}'),
+            ],
+          ),
+        ),
+      ),
+    ),
+                  child: Container(
+                    height: 2,
+                    width: 80,
+                    color: white,
+                  ),
+                ),
 
                 const SizedBox(height: 30),
 
@@ -238,33 +307,36 @@ class _MinimalistSuccessPageState extends State<MinimalistSuccessPage>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                   _buildActionButton(
-  icon: Icons.confirmation_number_outlined,
-  label: 'View Ticket',
-  onPressed: () {
-    // Create a BookingModel instance with all required data
-    final booking = BookingModel(
-      bookingId: widget.transactionId, // Using transactionId as bookingId
-      eventId: widget.event.eventId!,
-      userId: widget.event.organizerId!, // You might want to get this from your auth service
-      userName: widget.event.organizerName ?? 'Unknown User',
-      seatsBooked: widget.selectedSeats,
-      totalPrice: widget.totalPrice,
-      bookingTime: widget.dateTime,
-      eventName: widget.event.eventName!,
-      organizerId: widget.event.organizerId!,
-    );
+                    _buildActionButton(
+                      icon: Icons.confirmation_number_outlined,
+                      label: 'View Ticket',
+                      onPressed: () {
+                        
+                        final booking = BookingModel(
+                          bookingId: widget
+                              .transactionId, 
+                          eventId: widget.event.eventId!,
+                          userId: widget.event
+                              .organizerId!, 
+                          userName:
+                              widget.event.organizerName ?? 'Unknown User',
+                          seatsBooked: widget.selectedSeats,
+                          totalPrice: widget.totalPrice,
+                          bookingTime: widget.dateTime,
+                          eventName: widget.event.eventName!,
+                          organizerId: widget.event.organizerId!,
+                        );
 
-    Navigator.of(context).push(
-      GentlePageTransition(
-        page: EventTicketScreen(
-          booking: booking,
-          event: widget.event,
-        ),
-      ),
-    );
-  },
-),
+                        Navigator.of(context).push(
+                          GentlePageTransition(
+                            page: EventTicketScreen(
+                              booking: booking,
+                              event: widget.event,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                     const SizedBox(width: 30),
                     _buildActionButton(
                       icon: Icons.share_outlined,
@@ -279,22 +351,29 @@ class _MinimalistSuccessPageState extends State<MinimalistSuccessPage>
                     ),
                   ],
                 ),
-                SizedBox(height: 50,),
-               Row(mainAxisAlignment: MainAxisAlignment.center,
-                 children: [
-
-                   Text(
+                SizedBox(
+                  height: 50,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
                       'Powered by',
                       style: GoogleFonts.notoSans(
                         color: Colors.white.withOpacity(0.5),
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                       
                       ),
-                    ),SizedBox(width: 10,),
-                   Image.asset('assets/welcomepageassets/razorpay_logo.png',height: 20,),
-                 ],
-               )
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Image.asset(
+                      'assets/welcomepageassets/razorpay_logo.png',
+                      height: 20,
+                    ),
+                  ],
+                )
               ],
             ),
           ),

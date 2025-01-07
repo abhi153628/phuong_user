@@ -1,6 +1,8 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:like_button/like_button.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/organizer_profile_modal.dart';
 import 'package:phuong/services/likes_services.dart';
@@ -17,11 +19,9 @@ import 'package:timeago/timeago.dart' as timeago;
 class FeedPage extends StatefulWidget {
   final bool showLikedPostsOnly;
   final Stream<List<Post>> postsStream;
- 
 
-
-   FeedPage({
-    Key? key, 
+  FeedPage({
+    Key? key,
     required this.postsStream,
     this.showLikedPostsOnly = false,
   }) : super(key: key);
@@ -33,24 +33,25 @@ class FeedPage extends StatefulWidget {
 class _FeedPageState extends State<FeedPage> {
   final LikesService _likesService = LikesService();
   late Stream<List<Post>> _finalPostsStream;
-   final UserOrganizerProfileService _profileService =
+  final UserOrganizerProfileService _profileService =
       UserOrganizerProfileService();
-         List<OrganizerProfile> _allOrganizers = [];
+  List<OrganizerProfile> _allOrganizers = [];
   List<OrganizerProfile> _filteredOrganizers = [];
-    bool _isLoading = true;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _initializeStream();
-     _loadOrganizers();
+    _loadOrganizers();
   }
 
   void _initializeStream() {
-    _finalPostsStream = widget.showLikedPostsOnly 
-      ? _likesService.getLikedPosts()
-      : widget.postsStream;
+    _finalPostsStream = widget.showLikedPostsOnly
+        ? _likesService.getLikedPosts()
+        : widget.postsStream;
   }
+
   Future<void> _loadOrganizers() async {
     try {
       setState(() => _isLoading = true);
@@ -67,7 +68,28 @@ class _FeedPageState extends State<FeedPage> {
       });
     }
   }
-  
+
+  Widget _buildHeader() {
+    return FadeIn(
+      duration: Duration(milliseconds: 700),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 40, left: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              widget.showLikedPostsOnly ? '    Liked Posts' : ' Feed',
+              style: GoogleFonts.syne(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,45 +97,32 @@ class _FeedPageState extends State<FeedPage> {
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     final padding = mediaQuery.padding;
-    
-   return Scaffold(
+
+    return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Padding(
-          padding: const EdgeInsets.only(top: 40, left: 20),
-          child: Text(
-            widget.showLikedPostsOnly ? 'Liked Posts' : 'Band Feed',
-            style: GoogleFonts.syne(
-              color: const Color(0xFFAFEB2B),
-              fontSize: screenWidth * 0.06,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        elevation: 0,
-      ),
       body: Column(
         children: [
+          _buildHeader(),
           _buildOrganizerAvatars(),
-          Expanded( // Wrap StreamBuilder with Expanded
+          Expanded(
+            // Wrap StreamBuilder with Expanded
             child: StreamBuilder<List<Post>>(
               stream: _finalPostsStream,
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return _buildErrorState(screenWidth);
                 }
-            
+
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return _buildLoadingState();
                 }
-            
+
                 final posts = snapshot.data ?? [];
-                
+
                 if (posts.isEmpty) {
                   return _buildEmptyState(screenWidth);
                 }
-            
+
                 return ListView.builder(
                   shrinkWrap: true, // Add this
                   physics: const AlwaysScrollableScrollPhysics(), // Add this
@@ -121,7 +130,8 @@ class _FeedPageState extends State<FeedPage> {
                   itemBuilder: (context, index) => _PostCard(
                     post: posts[index],
                     likesService: _likesService,
-                    onLikeChanged: widget.showLikedPostsOnly ? _handleLikeChanged : null,
+                    onLikeChanged:
+                        widget.showLikedPostsOnly ? _handleLikeChanged : null,
                     screenWidth: screenWidth,
                     screenHeight: screenHeight,
                   ),
@@ -133,7 +143,8 @@ class _FeedPageState extends State<FeedPage> {
       ),
     );
   }
-    Widget _buildOrganizerAvatars() {
+
+  Widget _buildOrganizerAvatars() {
     return Container(
       height: 90,
       margin: EdgeInsets.symmetric(vertical: 16),
@@ -148,89 +159,86 @@ class _FeedPageState extends State<FeedPage> {
       ),
     );
   }
-   Widget _buildOrganizerAvatar(OrganizerProfile organizer) {
-  return Container(
-    margin: EdgeInsets.symmetric(horizontal: 6),
-    child: Column(
-      children: [
-        Hero(
-          tag: 'avatar_${organizer.id}',
-          child: GestureDetector(
-            onTap: () {
-              // Navigate to Organizer Details Page
-              Navigator.push(
-                context, 
-                MaterialPageRoute(
-                  builder: (context) => OrganizerProfileViewScreen(
-                    organizerId: organizer.id,
-                    
-                  ),
-                ),
-              );
-            },
-            child: Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [Colors.black, Colors.white],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                border: Border.all(
-                  color: grey,
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.activeGreen.withOpacity(0.2),
-                    blurRadius: 8,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(35),
-                child: CachedNetworkImage(
-                  imageUrl: organizer.imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[900],
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: grey,
-                      ),
+
+  Widget _buildOrganizerAvatar(OrganizerProfile organizer) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 6),
+      child: Column(
+        children: [
+          Hero(
+            tag: 'avatar_${organizer.id}',
+            child: GestureDetector(
+              onTap: () {
+                // Navigate to Organizer Details Page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OrganizerProfileViewScreen(
+                      organizerId: organizer.id,
                     ),
                   ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[900],
-                    child: Icon(Icons.person, color: Colors.grey),
+                );
+              },
+              child: Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [Colors.black, Colors.white],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                    color: grey,
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.activeGreen.withOpacity(0.2),
+                      blurRadius: 8,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(35),
+                  child: CachedNetworkImage(
+                    imageUrl: organizer.imageUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey[900],
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: grey,
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey[900],
+                      child: Icon(Icons.person, color: Colors.grey),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-        SizedBox(height: 8),
-        Text(
-          organizer.name,
-          style: GoogleFonts.notoSans(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
+          SizedBox(height: 8),
+          Text(
+            organizer.name,
+            style: GoogleFonts.notoSans(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
-
-  
-  
   Widget _buildShimmerAvatar() {
     return Shimmer.fromColors(
       baseColor: Colors.grey[900]!,
@@ -258,7 +266,6 @@ class _FeedPageState extends State<FeedPage> {
       ),
     );
   }
-
 
   Widget _buildErrorState(double screenWidth) {
     return Center(
@@ -307,9 +314,9 @@ class _FeedPageState extends State<FeedPage> {
           ),
           SizedBox(height: screenWidth * 0.04),
           Text(
-            widget.showLikedPostsOnly 
-              ? 'No liked posts yet'
-              : 'No posts available',
+            widget.showLikedPostsOnly
+                ? 'No liked posts yet'
+                : 'No posts available',
             style: GoogleFonts.notoSans(
               color: Colors.white,
               fontSize: screenWidth * 0.04,
@@ -403,7 +410,8 @@ class _PostCard extends StatelessWidget {
           label: 'View Likes',
           textColor: Colors.white,
           onPressed: () {
-            Navigator.of(context).push(GentlePageTransition(page: LikedPostsPage()));
+            Navigator.of(context)
+                .push(GentlePageTransition(page: LikedPostsPage()));
           },
         ),
       ),
@@ -437,7 +445,7 @@ class _PostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final double imageHeight = screenHeight * 0.4; // Responsive image height
     final double avatarSize = screenWidth * 0.1; // Responsive avatar size
-    
+
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: screenWidth * 0.04,
@@ -446,149 +454,173 @@ class _PostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              post.organizerImageUrl.isNotEmpty
-                  ? InkWell(
-                      onTap: () => Navigator.of(context).push(
-                        GentlePageTransition(
-                          page: OrganizerProfileViewScreen(organizerId: post.organizerId),
-                        ),
-                      ),
-                      child: ClipOval(
-                        child: CachedNetworkImage(
-                          imageUrl: post.organizerImageUrl,
-                          width: avatarSize,
-                          height: avatarSize,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => _buildAvatarPlaceholder(),
-                          errorWidget: (context, url, error) => _buildAvatarPlaceholder(),
-                        ),
-                      ),
-                    )
-                  : _buildAvatarPlaceholder(),
-              SizedBox(width: screenWidth * 0.03),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      post.organizerName,
-                      style: GoogleFonts.syne(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: screenWidth * 0.04,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      timeago.format(post.timestamp),
-                      style: GoogleFonts.notoSans(
-                        color: Colors.grey[400],
-                        fontSize: screenWidth * 0.03,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: screenHeight * 0.015),
-          
-          ClipRRect(
-            borderRadius: BorderRadius.circular(screenWidth * 0.025),
-            child: Stack(
+          FadeIn(
+            child: Row(
               children: [
-                StreamBuilder<bool>(
-                  stream: likesService.isPostLiked(post.id),
-                  initialData: post.isLiked,
-                  builder: (context, snapshot) {
-                    final isLiked = snapshot.data ?? false;
-                    return GestureDetector(
-                      onDoubleTap: () {
-                        if (!isLiked) {
-                          _handleLike(context, isLiked);
-                        }
-                      },
-                      child: CachedNetworkImage(
-                        imageUrl: post.imageUrl,
-                        height: imageHeight,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          height: imageHeight,
-                          color: Colors.grey[900],
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              color: Color(0xFFAFEB2B),
-                            ),
+                post.organizerImageUrl.isNotEmpty
+                    ? InkWell(
+                        onTap: () => Navigator.of(context).push(
+                          GentlePageTransition(
+                            page: OrganizerProfileViewScreen(
+                                organizerId: post.organizerId),
                           ),
                         ),
-                        errorWidget: (context, url, error) => Container(
-                          height: imageHeight,
-                          color: Colors.grey[900],
-                          child: Icon(
-                            Icons.error,
-                            color: const Color(0xFFAFEB2B),
-                            size: screenWidth * 0.1,
+                        child: ClipOval(
+                          child: CachedNetworkImage(
+                            imageUrl: post.organizerImageUrl,
+                            width: avatarSize,
+                            height: avatarSize,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) =>
+                                _buildAvatarPlaceholder(),
+                            errorWidget: (context, url, error) =>
+                                _buildAvatarPlaceholder(),
                           ),
+                        ),
+                      )
+                    : _buildAvatarPlaceholder(),
+                SizedBox(width: screenWidth * 0.03),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        post.organizerName,
+                        style: GoogleFonts.syne(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: screenWidth * 0.04,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        timeago.format(post.timestamp),
+                        style: GoogleFonts.notoSans(
+                          color: Colors.grey[400],
+                          fontSize: screenWidth * 0.03,
                         ),
                       ),
-                    );
-                  },
-                ),
-                
-                Positioned(
-                  bottom: screenHeight * 0.02,
-                  right: screenWidth * 0.04,
-                  child: StreamBuilder<bool>(
-                    stream: likesService.isPostLiked(post.id),
-                    initialData: post.isLiked,
-                    builder: (context, snapshot) {
-                      final isLiked = snapshot.data ?? false;
-                      return LikeButton(
-                        size: screenWidth * 0.08,
-                        isLiked: isLiked,
-                        likeBuilder: (bool isLiked) {
-                          return Icon(
-                            isLiked ? Icons.favorite : Icons.favorite_border,
-                            color: isLiked ? const Color(0xFFAFEB2B) : Colors.white,
-                            size: screenWidth * 0.08,
-                          );
-                        },
-                        onTap: (isLiked) async {
-                          await _handleLike(context, isLiked);
-                          return !isLiked;
-                        },
-                        bubblesSize: screenWidth * 0.12,
-                        circleSize: screenWidth * 0.2,
-                        padding: EdgeInsets.zero,
-                        circleColor: const CircleColor(
-                          start: Color(0xFFAFEB2B),
-                          end: Color(0xFF87B321),
-                        ),
-                        bubblesColor: const BubblesColor(
-                          dotPrimaryColor: Color(0xFFAFEB2B),
-                          dotSecondaryColor: Color(0xFF87B321),
-                        ),
-                      );
-                    },
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.all(screenWidth * 0.02),
-            child: Text(
-              '#${post.description!}',
-              style: GoogleFonts.notoSans(
-                fontWeight: FontWeight.bold,
-                fontSize: screenWidth * 0.038,
-                color: white,
+          SizedBox(height: screenHeight * 0.015),
+          FadeInUp(
+            duration: Duration(milliseconds: 600),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(screenWidth * 0.025),
+              child: Stack(
+                children: [
+                  StreamBuilder<bool>(
+                    stream: likesService.isPostLiked(post.id),
+                    initialData: post.isLiked,
+                    builder: (context, snapshot) {
+                      final isLiked = snapshot.data ?? false;
+                      return GestureDetector(
+                        onDoubleTap: () {
+                          if (!isLiked) {
+                            _handleLike(context, isLiked);
+                          }
+                        },
+                        onTap: () {
+                          Navigator.of(context).push(
+                            PageRouteBuilder(
+                              opaque: false,
+                              barrierColor: Colors.black87,
+                              pageBuilder: (BuildContext context, _, __) {
+                                return _ImageViewerPage(post: post);
+                              },
+                            ),
+                          );
+                        },
+                        child: Hero(
+                          tag: 'post-${post.id}',
+                          child: CachedNetworkImage(
+                            imageUrl: post.imageUrl,
+                            height: imageHeight,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              height: imageHeight,
+                              color: Colors.grey[900],
+                              child: Center(
+                                  child: Lottie.asset(
+                                      'assets/animations/Animation - 1736144056346.json',
+                                      height: 100,
+                                      width: 100)),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              height: imageHeight,
+                              color: Colors.grey[900],
+                              child: Icon(
+                                Icons.error,
+                                color: const Color(0xFFAFEB2B),
+                                size: screenWidth * 0.1,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  Positioned(
+                    bottom: screenHeight * 0.02,
+                    right: screenWidth * 0.04,
+                    child: StreamBuilder<bool>(
+                      stream: likesService.isPostLiked(post.id),
+                      initialData: post.isLiked,
+                      builder: (context, snapshot) {
+                        final isLiked = snapshot.data ?? false;
+                        return LikeButton(
+                          size: screenWidth * 0.08,
+                          isLiked: isLiked,
+                          likeBuilder: (bool isLiked) {
+                            return Icon(
+                              isLiked ? Icons.favorite : Icons.favorite_border,
+                              color: isLiked
+                                  ? const Color(0xFFAFEB2B)
+                                  : Colors.white,
+                              size: screenWidth * 0.08,
+                            );
+                          },
+                          onTap: (isLiked) async {
+                            await _handleLike(context, isLiked);
+                            return !isLiked;
+                          },
+                          bubblesSize: screenWidth * 0.12,
+                          circleSize: screenWidth * 0.2,
+                          padding: EdgeInsets.zero,
+                          circleColor: const CircleColor(
+                            start: Color(0xFFAFEB2B),
+                            end: Color(0xFF87B321),
+                          ),
+                          bubblesColor: const BubblesColor(
+                            dotPrimaryColor: Color(0xFFAFEB2B),
+                            dotSecondaryColor: Color(0xFF87B321),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 2,
+            ),
+          ),
+          FadeIn(
+            child: Padding(
+              padding: EdgeInsets.all(screenWidth * 0.02),
+              child: Text(
+                '#${post.description!}',
+                style: GoogleFonts.notoSans(
+                  fontWeight: FontWeight.bold,
+                  fontSize: screenWidth * 0.038,
+                  color: white,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+              ),
             ),
           ),
         ],
@@ -606,6 +638,117 @@ class _PostCard extends StatelessWidget {
           color: Colors.black,
           fontWeight: FontWeight.bold,
           fontSize: screenWidth * 0.04,
+        ),
+      ),
+    );
+  }
+}
+
+class _ImageViewerPage extends StatelessWidget {
+  final Post post;
+  const _ImageViewerPage({required this.post});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pop(),
+      child: Scaffold(
+        backgroundColor: Colors.black.withOpacity(0.9),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Main content
+            Center(
+              child: GestureDetector(
+                onTap: () {}, // Prevent tap from propagating to parent
+                child: Hero(
+                  tag: 'post-${post.id}',
+                  child: InteractiveViewer(
+                    minScale: 0.5,
+                    maxScale: 4.0,
+                    boundaryMargin: const EdgeInsets.all(double.infinity),
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: Colors.transparent,
+                      child: CachedNetworkImage(
+                        imageUrl: post.imageUrl,
+                        fit: BoxFit.contain,
+                        placeholder: (context, url) => Center(
+                          child: Lottie.asset(
+                            'assets/animations/Animation - 1736144056346.json',
+                            height: 170,
+                            width: 170,
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => const Center(
+                          child: Icon(
+                            Icons.error,
+                            color: Colors.red,
+                            size: 48,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            
+            // Close button
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              right: 16,
+              child: Material(
+                color: Colors.black.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(20),
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ),
+
+            // Description overlay
+            if (post.description != null && post.description!.isNotEmpty)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: () {}, // Prevent tap from closing the viewer
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.8),
+                          Colors.transparent,
+                        ],
+                        stops: const [0.0, 1.0],
+                      ),
+                    ),
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).padding.bottom + 20,
+                      top: 20,
+                      left: 20,
+                      right: 20,
+                    ),
+                    child: Text(
+                      '#${post.description!}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

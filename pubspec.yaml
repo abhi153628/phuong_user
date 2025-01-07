@@ -70,6 +70,7 @@ dependencies:
   qr_flutter: ^4.1.0
   flutter_bloc: ^8.1.6
   equatable: ^2.0.7
+  animate_do: ^3.3.4
  
   
   
@@ -83,9 +84,9 @@ dev_dependencies:
 flutter_launcher_icons:  # Separate configuration section
   android: true 
   ios: true
-  image_path: "assets/icon/icon.png"
-  adaptive_icon_background: "#FF000000"
-  adaptive_icon_foreground: "assets/icon/icon.png"
+  image_path: "assets/icon/phoung logo 1024.png"
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "assets/icon/phoung logo 1024.png"
   remove_alpha_ios: true 
   adaptive_icon_foreground_scale_factor: 0.9
 

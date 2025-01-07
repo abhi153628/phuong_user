@@ -1,0 +1,19 @@
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/phoung logo 1024.png"  # Update this path to where your actual icon is
+  adaptive_icon_background: "#000000"  # Optional: background color for adaptive icons
+  adaptive_icon_foreground: "assets/icon/phoung logo 1024.png"  # Optional: for adaptive icons
+  web:
+    generate: true
+    image_path: "assets/icon/phoung logo 1024.png"
+    background_color: "#000000"
+    theme_color: "#000000"
+  windows:
+    generate: true
+    image_path: "assets/icon/phoung logo 1024.png"
+    icon_size: 48
+  macos:
+    generate: true
+    image_path: "assets/icon/phoung logo 1024.png"
+  remove_alpha_ios: true  # This will fix the iOS alpha channel warning

@@ -329,48 +329,45 @@ Widget _buildSliverAppBar() {
     );
   }
 
-  Widget _buildActionButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.activeGreen,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).push(
-                  GentlePageTransition(
-                    page: UserChatScreen(organizerId: widget.organizerId),
-                  ),
-                );
-              },
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.message, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'Message',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+   Widget _buildActionButtons() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      width: double.infinity, // Take full width
+      child: Center( // Center the button
+        child: SizedBox(
+          width: 200, // Set a fixed width for the button
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.activeGreen,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
+            onPressed: () {
+              Navigator.of(context).push(
+                GentlePageTransition(
+                  page: UserChatScreen(organizerId: widget.organizerId),
+                ),
+              );
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.message, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'Message',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(width: 16),
-        
-        ],
+        ),
       ),
     ).animate().fadeIn(duration: 700.ms).slideY(begin: 0.3, end: 0);
   }
@@ -409,7 +406,7 @@ Widget _buildSliverAppBar() {
           child: Padding(
             padding: EdgeInsets.all(20.0),
             child: Text(
-              'No posts yet',
+              'No Posts yet',
               style: TextStyle(
                 color: Colors.white60,
                 fontSize: 16,
@@ -540,87 +537,85 @@ class _ImageViewerPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Close button
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Close button
+          Positioned(
+            top: 16,
+            right: 16,
+            child: Material(
+              color: Colors.transparent,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+          ),
+          // Zoomable image
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Center(
+              child: Hero(
+                tag: 'post-${post.id}',
+                child: InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: CachedNetworkImage(
+                    imageUrl: post.imageUrl,
+                    fit: BoxFit.contain,
+                    placeholder: (context, url) => Container(
+                      color: Colors.transparent,
+                      child: Center(
+                        child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170)
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.transparent,
+                      child: const Icon(
+                        Icons.error,
+                        color: Colors.red,
+                        size: 48,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Description overlay
+          if (post.description != null && post.description!.isNotEmpty)
             Positioned(
-              top: 16,
-              right: 16,
-              child: Material(
-                color: Colors.transparent,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ),
-            ),
-            // Zoomable image
-            GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: Center(
-                child: Hero(
-                  tag: 'post-${post.id}',
-                  child: InteractiveViewer(
-                    minScale: 0.5,
-                    maxScale: 4.0,
-                    child: CachedNetworkImage(
-                      imageUrl: post.imageUrl,
-                      fit: BoxFit.contain,
-                      placeholder: (context, url) => Container(
-                        color: Colors.transparent,
-                        child: Center(
-                          child: Lottie.asset('assets/animations/Animation - 1736144056346.json',height: 170,width: 170)
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.transparent,
-                        child: const Icon(
-                          Icons.error,
-                          color: Colors.red,
-                          size: 48,
-                        ),
-                      ),
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: () {}, // Prevent tap from closing the viewer
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black87,
+                        Colors.transparent,
+                      ],
                     ),
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    post.description!,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
             ),
-            // Description overlay
-            if (post.description != null && post.description!.isNotEmpty)
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: () {}, // Prevent tap from closing the viewer
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Colors.black87,
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      post.description!,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
+        ],
       ),
     );
   }

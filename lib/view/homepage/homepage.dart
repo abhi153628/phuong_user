@@ -1,8 +1,8 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
-
 import 'package:phuong/constants/colors.dart';
 import 'package:phuong/modal/event_modal.dart';
 import 'package:phuong/modal/user_profile_modal.dart';
@@ -16,7 +16,7 @@ import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/homepage/widgets/home_event_card.dart';
 import 'package:phuong/view/homepage/widgets/event_carousel/event_carousel.dart';
 import 'package:phuong/view/search_screen/search_design.dart';
-import 'package:phuong/view/search_screen/search_page.dart';
+
 
 class Homepage extends StatefulWidget {
   const Homepage({Key? key}) : super(key: key);
@@ -155,77 +155,78 @@ class _HomepageState extends State<Homepage>
     );
   }
 
-  void _filterEvents() {
-    setState(() {
-      // Filter logic based on selected category
-      switch (_selectedCategory) {
-        case 0:
-          if (_userCurrentLocation != null) {
-            // Split user location into individual words
-            List<String> userLocationWords = _userCurrentLocation!
+ void _filterEvents() {
+  setState(() {
+    // Filter logic based on selected category
+    switch (_selectedCategory) {
+      case 0: // My feed category
+        if (_userCurrentLocation != null) {
+          // Split user location into individual words
+          List<String> userLocationWords = _userCurrentLocation!
+              .toLowerCase()
+              .replaceAll(',', ' ')
+              .split(' ')
+              .where((word) => word.isNotEmpty)
+              .toList();
+
+          _filteredEvents = _allEvents.where((event) {
+            if (event.location == null) return false;
+
+            // Split event location into words
+            List<String> eventLocationWords = event.location!
                 .toLowerCase()
                 .replaceAll(',', ' ')
                 .split(' ')
                 .where((word) => word.isNotEmpty)
                 .toList();
 
-            _filteredEvents = _allEvents.where((event) {
-              if (event.location == null) return false;
+            // Check if any word from user location matches any word from event location
+            return userLocationWords.any((userWord) => eventLocationWords.any(
+                (eventWord) =>
+                    eventWord.contains(userWord) ||
+                    userWord.contains(eventWord)));
+          }).toList();
 
-              // Split event location into words
-              List<String> eventLocationWords = event.location!
-                  .toLowerCase()
-                  .replaceAll(',', ' ')
-                  .split(' ')
-                  .where((word) => word.isNotEmpty)
-                  .toList();
-
-              // Check if any word from user location matches any word from event location
-              return userLocationWords.any((userWord) => eventLocationWords.any(
-                  (eventWord) =>
-                      eventWord.contains(userWord) ||
-                      userWord.contains(eventWord)));
-            }).toList();
-
-            // If no events found
-            if (_filteredEvents.isEmpty) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('No events found in your area'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              });
-            }
+          // Only show "No events found" message if location is available AND no events are found
+          if (_filteredEvents.isEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              toastMessage(
+                context: context, 
+                message: 'No events found in your area'
+              );
+            });
           }
-          break;
-        case 1:
-          _filteredEvents = _allEvents
-              .where((event) => event.genreType!.toLowerCase() == 'rock')
-              .toList();
-
-          break;
-        case 2:
-          _filteredEvents = _allEvents
-              .where((event) => event.genreType!.toLowerCase() == 'classical')
-              .toList();
-          break;
-        case 3:
-          _filteredEvents = _allEvents
-              .where((event) => event.genreType!.toLowerCase() == 'pop')
-              .toList();
-          break;
-        case 4:
-          _filteredEvents = _allEvents
-              .where((event) => event.genreType!.toLowerCase() == 'jazz')
-              .toList();
-          break;
-        default:
+        }
+ 
+        else {
           _filteredEvents = _allEvents;
-      }
-    });
-  }
+        }
+        break;
+      case 1:
+        _filteredEvents = _allEvents
+            .where((event) => event.genreType?.toLowerCase() == 'rock')
+            .toList();
+        break;
+      case 2:
+        _filteredEvents = _allEvents
+            .where((event) => event.genreType?.toLowerCase() == 'classical')
+            .toList();
+        break;
+      case 3:
+        _filteredEvents = _allEvents
+            .where((event) => event.genreType?.toLowerCase() == 'pop')
+            .toList();
+        break;
+      case 4:
+        _filteredEvents = _allEvents
+            .where((event) => event.genreType?.toLowerCase() == 'jazz')
+            .toList();
+        break;
+      default:
+        _filteredEvents = _allEvents;
+    }
+  });
+}
 
   @override
   void dispose() {
@@ -243,6 +244,55 @@ class _HomepageState extends State<Homepage>
       _animationController.reverse();
     }
   }
+   void toastMessage({
+  required BuildContext context,
+  required String message,
+  IconData icon = Icons.info_outline,
+  Color backgroundColor = const Color(0xFF87B321),
+  Duration duration = const Duration(seconds: 2),
+  String? actionLabel,
+  VoidCallback? onActionPressed,
+  double? screenWidth,
+}) {
+
+  screenWidth ??= MediaQuery.of(context).size.width;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Row(
+        children: [
+          Icon(icon, color: Colors.black),
+          SizedBox(width: screenWidth * 0.02),
+          Expanded(
+            child: Text(
+              message,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.notoSans(
+                color: Colors.black,
+                fontWeight: FontWeight.w700
+              ),
+            ),
+          ),
+        ],
+      ),
+      duration: duration,
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: backgroundColor.withOpacity(0.9),
+      action: actionLabel != null && onActionPressed != null
+          ? SnackBarAction(
+              label: actionLabel,
+              textColor: Colors.white,
+              onPressed: onActionPressed,
+            )
+          : null,
+      margin: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -274,7 +324,8 @@ class _HomepageState extends State<Homepage>
                         children: [
                           _buildHeader(),
                           const SizedBox(height: 15),
-                          _buildCategories(),
+                          FadeIn(
+                             duration: Duration(milliseconds: 800),child: _buildCategories()),
                           const SizedBox(height: 15),
                           if (!_isSearchBarSticky)
                             if (!_isSearchBarSticky)
@@ -288,23 +339,25 @@ class _HomepageState extends State<Homepage>
                 // Upcoming Events Section
                 Transform.translate(
                   offset: const Offset(0, -50),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 20, top: 15),
-                        child: Text(
-                          'Upcoming Events',
-                          style: GoogleFonts.syne(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: const Color.fromARGB(255, 210, 226, 174),
+                  child: FadeIn( duration: Duration(milliseconds: 700),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 20, top: 15),
+                          child: Text(
+                            'Upcoming Events',
+                            style: GoogleFonts.syne(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: const Color.fromARGB(255, 210, 226, 174),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      const EventsCarousel(),
-                    ],
+                        const SizedBox(height: 20),
+                        FadeIn( duration: Duration(milliseconds: 700),child: const EventsCarousel()),
+                      ],
+                    ),
                   ),
                 ),
 
@@ -314,44 +367,40 @@ class _HomepageState extends State<Homepage>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSectionTitle(),
+                      FadeIn( duration: Duration(milliseconds: 700),child: _buildSectionTitle()),
                       const SizedBox(height: 20),
 
                       // Loading or No Events Handling
-                      _isLoading
-                          ? Center(
-                              child: Lottie.asset(
-                                  'assets/animations/Animation - 1736144056346.json',
-                                  height: 170,
-                                  width: 170))
-                          : _filteredEvents.isEmpty
-                              ? Center(
-                                  child: Text(
-                                    _selectedCategory == 0
-                                        ? 'Please enable location services to explore events near you.'
-                                        : 'No ${categories[_selectedCategory].toLowerCase()} events are currently available.',
-                                    style: GoogleFonts.syne(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                )
-                              : Column(
-                                  children: _filteredEvents.map((event) {
-                                    return Column(
-                                      children: [
-                                        HomeEventCard(event: event,),
-                                        const SizedBox(height: 20),
-                                      ],
-                                    );
-                                  }).toList(),
-                                ),
-                    ],
-                  ),
-                ),
-              ],
+                     _isLoading
+    ? Center(
+        child: Lottie.asset(
+            'assets/animations/Animation - 1736144056346.json',
+            height: 170,
+            width: 170))
+    : _filteredEvents.isEmpty
+        ? Center(
+            child: Text(
+              _selectedCategory == 0
+                  ? (_userCurrentLocation == null
+                      ? 'Please enable location services to see nearby events'
+                      : 'No events found in your area')
+                  : 'No ${categories[_selectedCategory].toLowerCase()} events are currently available.',
+              style: GoogleFonts.syne(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.center,
             ),
+          )
+        : Column(
+            children: _filteredEvents.map((event) {
+              return Column(
+                children: [
+                  HomeEventCard(event: event),
+                  const SizedBox(height: 20),
+                ],
+              );
+            }).toList(),
           ),
 
           // Sticky Search Bar with enhanced animation
@@ -382,51 +431,60 @@ class _HomepageState extends State<Homepage>
           ),
         ],
       ),
-    );
+             ) ]
+              )    
+       ) ]
+        ));
+              
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding:
-          EdgeInsets.only(top: 40, left: 15, right: 15), // Added right padding
-      child: Row(
-        mainAxisAlignment:
-            MainAxisAlignment.spaceBetween, // Changed to spaceBetween
-        children: [
-          Text('Discover',
-              style: GoogleFonts.syne(
-                  color: white,
-                  fontSize: 29,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.2)),
-          Container(
-            decoration: BoxDecoration(
-                border: Border.all(
-                  width: 1,
-                  color: white,
-                ),
-                borderRadius: BorderRadius.circular(25)),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.wifi_tethering,
-                    color: AppColors.white,
+    return FadeIn(
+      duration: Duration(milliseconds: 700),
+      child: Padding(
+        padding:
+            EdgeInsets.only(top: 40, left: 15, right: 15), 
+        child: Row(
+          mainAxisAlignment:
+              MainAxisAlignment.spaceBetween, 
+          children: [
+            Text('Discover',
+                style: GoogleFonts.syne(
+                    color: white,
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.2)),
+            Container(
+              decoration: BoxDecoration(
+                  border: Border.all(
+                    width: 1,
+                    color: white,
                   ),
-                  onPressed: () {},
-                ),
-                IconButton(
-                  icon: const Icon(Icons.notifications_none,
-                      color: AppColors.white),
-                  onPressed: () {
-                    Navigator.of(context)
-                        .push(GentlePageTransition(page: NotificationPage()));
-                  },
-                ),
-              ],
+                  borderRadius: BorderRadius.circular(25)),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.bubble_chart,
+                      color: AppColors.white,
+                    ),
+                    onPressed: () {
+                      // navigate to ai chat section
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.notifications_none,
+                        color: AppColors.white),
+                    onPressed: () {
+                      Navigator.of(context)
+                          .push(GentlePageTransition(page: NotificationPage()));
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

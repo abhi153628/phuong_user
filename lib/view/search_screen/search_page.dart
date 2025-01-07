@@ -27,7 +27,7 @@ class EventSearchScreen extends StatelessWidget {
         title: Text(
           'Event Explorer',
           style: GoogleFonts.syne(
-            color: AppColors.activeGreen,
+            color: AppColors.white,
             fontWeight: FontWeight.bold,
             letterSpacing: 1
           ),
@@ -141,6 +141,7 @@ class EventSearchScreen extends StatelessWidget {
                   color: searchProvider.searchType == type 
                     ? Colors.black 
                     : AppColors.activeGreen,
+                    fontWeight: FontWeight.w500
                 ),
               ),
               selected: searchProvider.searchType == type,
@@ -167,14 +168,14 @@ class EventSearchScreen extends StatelessWidget {
           Icon(
             Icons.search_off,
             size: 100,
-            color: AppColors.activeGreen.withOpacity(0.5),
+            color: AppColors.white.withOpacity(0.5),
           ),
           const SizedBox(height: 16),
           // todo : add an empty field showing animation
           Text(
             'No events found',
             style: GoogleFonts.syne(
-              color: AppColors.activeGreen,
+              color: AppColors.white,
               fontSize: 18,
             ),
           ),

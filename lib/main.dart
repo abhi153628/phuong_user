@@ -5,13 +5,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phuong/firebase_options.dart';
 import 'package:phuong/repository/search_provider.dart';
 import 'package:phuong/services/event_fetching_firebase_service.dart';
+import 'package:phuong/view/homepage/widgets/colors.dart';
 import 'package:phuong/view/homepage/widgets/event_carousel/carousel_bloc/bloc/carousel_event.dart';
 import 'package:phuong/view/wrapper.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  //  orientation 
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
+  // Initialize Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -21,13 +29,13 @@ void main() async {
     print('Error initializing Firebase: $e');
   }
 
+  // Run app only once with all providers
   runApp(
     MultiBlocProvider(
       providers: [
         BlocProvider<EventsBloc>(
           create: (context) => EventsBloc(EventService()),
         ),
-      
       ],
       child: MultiProvider(
         providers: [
@@ -36,11 +44,6 @@ void main() async {
         child: const MyApp(),
       ),
     ),
-  );
-
-  SystemChrome.setEnabledSystemUIMode(
-    SystemUiMode.edgeToEdge,
-    overlays: [],
   );
 }
 
@@ -52,7 +55,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Phuong',
-      home:Wrapper(),
+      theme: ThemeData(
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: Colors.white,
+          selectionHandleColor: AppColors.activeGreen,
+        ),
+      ),
+      home: Wrapper(),
     );
   }
 }

@@ -1,15 +1,11 @@
-
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-
-
 
 class FirebaseAuthServices {
   final _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-   Future<User?> signInWithEmailAndPassword({
+  Future<User?> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
@@ -17,9 +13,8 @@ class FirebaseAuthServices {
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
-        
       );
-    print('Email: $email');
+      print('Email: $email');
       print('Password: $password');
       print('Logged in User ID: ${userCredential.user?.uid}');
 
@@ -34,6 +29,15 @@ class FirebaseAuthServices {
 
   Future<User?> createUserEmailAndPassword(String email, String password) async {
     try {
+      // First check if email exists
+      final methods = await _auth.fetchSignInMethodsForEmail(email);
+      if (methods.isNotEmpty) {
+        throw FirebaseAuthException(
+          code: 'email-already-in-use',
+          message: 'This email address is already registered. Please try signing in instead, or use a different email address.'
+        );
+      }
+      
       final cred = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -47,13 +51,11 @@ class FirebaseAuthServices {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
-         _googleSignIn.signOut();
+      await _googleSignIn.signOut();
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
   }
-
-
 
   String _handleAuthException(FirebaseAuthException e) {
     switch (e.code) {
@@ -66,7 +68,7 @@ class FirebaseAuthServices {
       case 'user-disabled':
         return 'This user account has been disabled.';
       case 'email-already-in-use':
-        return 'The email address is already in use.';
+        return e.message ?? 'This email address is already registered. Please try signing in instead, or use a different email address.';
       case 'operation-not-allowed':
         return 'Email/password accounts are not enabled.';
       case 'weak-password':
@@ -79,27 +81,24 @@ class FirebaseAuthServices {
         return e.message ?? 'An error occurred during authentication.';
     }
   }
-    //!email verfication
-  Future<void>sendPasswordResetLink(String email)async{
+
+  Future<void> sendPasswordResetLink(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
-      
     } catch (e) {
       print(e.toString());
-      
+      throw 'Failed to send password reset email. Please try again.';
     }
   }
-    //! Method to get the current user's ID
+
   String? getCurrentUserId() {
     return _auth.currentUser?.uid;
   }
 
-  //! Method to get the current user's email
   String? getCurrentUserEmail() {
     return _auth.currentUser?.email;
   }
 
-  //! Method to log current user details
   void logCurrentUserDetails() {
     final currentUser = _auth.currentUser;
     if (currentUser != null) {
@@ -109,10 +108,20 @@ class FirebaseAuthServices {
       print('No user is currently logged in.');
     }
   }
-    Future<User?> signInWithGoogle() async {
+
+  Future<User?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
+
+      // Check if email already exists with different auth provider
+      final methods = await _auth.fetchSignInMethodsForEmail(googleUser.email);
+      if (methods.isNotEmpty && !methods.contains('google.com')) {
+        throw FirebaseAuthException(
+          code: 'email-already-in-use',
+          message: 'This email is already registered with a different sign-in method. Please use your existing account.'
+        );
+      }
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
@@ -120,8 +129,7 @@ class FirebaseAuthServices {
         idToken: googleAuth.idToken,
       );
 
-      final UserCredential userCredential = 
-          await _auth.signInWithCredential(credential);
+      final UserCredential userCredential = await _auth.signInWithCredential(credential);
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
@@ -129,7 +137,4 @@ class FirebaseAuthServices {
       throw 'An error occurred during Google sign in';
     }
   }
-
-  // Add sign out method for Google
-
 }
