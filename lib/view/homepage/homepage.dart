@@ -236,10 +236,7 @@ class _HomepageState extends State<Homepage>
   }
 
   void _onScroll() {
-    if (_scrollController.offset > 150 && !_isSearchBarSticky) {
-      setState(() => _isSearchBarSticky = true);
-      _animationController.forward();
-    } else if (_scrollController.offset <= 150 && _isSearchBarSticky) {
+  if (_scrollController.offset <= 150 && _isSearchBarSticky) {
       setState(() => _isSearchBarSticky = false);
       _animationController.reverse();
     }
